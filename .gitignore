@@ -33,3 +33,6 @@
 
 # Vim Stuff
 .*.swp
+
+# Data Files
+*.parquet
