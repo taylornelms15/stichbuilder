@@ -7,8 +7,6 @@ import numpy as np
 import cv2
 import os.path
 
-import pdb
-
 COL_NAMES=["DisplayName", "DisplayNumStr", "dmc_num", "anchor_num", "red", "grn", "blu", "hue", "sat", "val", "l",   "u",   "v"]
 COL_TYPES=["str",         "str",           "str",     "str",        "int", "int", "int", "int", "int", "int", "int", "int", "int"]
 COL_DICT=dict(zip(COL_NAMES, [pd.Series(dtype=x) for x in COL_TYPES]))
