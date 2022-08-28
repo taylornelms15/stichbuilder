@@ -2,8 +2,6 @@
 
 from scipy.spatial import distance
 
-import pdb
-
 class ThreadEntry:
     def __init__(self, DisplayName, DisplayNumStr, dmc_num, red, grn, blu, hue, sat, val, l, u, v):
         self.DisplayName = DisplayName
