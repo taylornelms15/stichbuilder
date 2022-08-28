@@ -38,9 +38,8 @@ class ThreadEntry:
 
 def plotEntries3D(entries):
     import numpy as np
-    import matplotlib
-    matplotlib.use("TkAgg")
     import matplotlib.pyplot as plt
+    from mpl_toolkits.mplot3d import Axes3D # <--- This is important for 3d plotting 
 
     xvals = np.array([x.l for x in entries])
     yvals = np.array([x.u for x in entries])
@@ -49,11 +48,19 @@ def plotEntries3D(entries):
     names = [x.DisplayName for x in entries]
 
     fig = plt.figure()
+    # Make 3d plot
     ax = fig.add_subplot(111, projection="3d")
+    # Plot all our points (with their colors)
     ax.scatter(xvals, yvals, zvals, c=cvals)
+    # Label each point 
     for i, name in enumerate(names):
-        ax.text(xvals[i], yvals[i], zvals[i], name, size=10, zorder=1)
-        #ax.annotate(name, (xvals[i], yvals[i], zvals[i]))
+        ax.text(xvals[i], yvals[i], zvals[i], name, size=4, zorder=1)
+    # Change the background color
+    ax.xaxis.pane.set_edgecolor("b")
+    ax.yaxis.pane.set_edgecolor("b")
+    ax.zaxis.pane.set_edgecolor("b")
+    ax.patch.set_facecolor("black")
+    fig.patch.set_facecolor("black")
 
 
     plt.show()
@@ -72,7 +79,6 @@ def main():
                             row["red"], row["grn"], row["blu"], 
                             row["hue"], row["sat"], row["val"], 
                             row["l"], row["u"], row["v"])
-        print(entry)
         entries.append(entry)
     plotEntries3D(entries)
 
