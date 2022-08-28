@@ -36,3 +36,6 @@
 
 # Data Files
 *.parquet
+
+# Python Stuff (whoops, this was a python project and not C++)
+__pycache__

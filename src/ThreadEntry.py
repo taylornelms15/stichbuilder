@@ -31,6 +31,12 @@ class ThreadEntry:
         rgb = self.getRGB()
         return [rgb[0] / 255.0, rgb[1] / 255.0, rgb[2] / 255.0]
 
+    def getLUV(self):
+        return [self.l, self.u, self.v]
+    def getLUVFloat(self):
+        luv = self.getLUV()
+        return [luv[0] / 255.0, luv[1] / 255.0, luv[2] / 255.0]
+
     def __str__(self):
         return "<Entry dmc=%s name=%s r=%s g=%s b=%s>" % (self.dmc_num, self.DisplayName, self.red, self.grn, self.blu)
 
@@ -68,7 +74,6 @@ def main():
     Meant for dev, not meant for production
     """
     import pandas as pd
-    import argparse
     infile = "../data/dmc_readable.parquet"
     df = pd.read_parquet(infile)
     entries = []
