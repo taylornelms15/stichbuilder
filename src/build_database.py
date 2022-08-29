@@ -31,7 +31,7 @@ def getColorValsFromHex(hexcode):
     bgrPix[:,:,2] = rgb[0]
     # Use OpenCV to convert color spaces
     hsvPix = cv2.cvtColor(bgrPix, cv2.COLOR_BGR2HSV)
-    luvPix = cv2.cvtColor(bgrPix, cv2.COLOR_BGR2Luv)
+    luvPix = cv2.cvtColor(bgrPix, cv2.COLOR_BGR2LUV)
     
     return (bgrPix[0,0,2], bgrPix[0,0,1], bgrPix[0,0,0],
             hsvPix[0,0,0], hsvPix[0,0,1], hsvPix[0,0,2],

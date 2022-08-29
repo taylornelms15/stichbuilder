@@ -36,7 +36,8 @@ class ThreadTree:
         Queries the internal kdtree for the closest thread to the given LUV tuple
         Returns both the distance and the ThreadEntry that's closest
         """
-        dist, idx = self.kdtree.query(luv_tuple)
+        dist, idx = self.kdtree.query(luv_tuple, p=2)
+        print("Query for data %s resulted in %s" % (luv_tuple, self.entrylist[idx]))
         return (dist, self.entrylist[idx])
 
 def main():

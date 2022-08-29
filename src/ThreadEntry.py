@@ -30,6 +30,8 @@ class ThreadEntry:
     def getRGBFloat(self):
         rgb = self.getRGB()
         return [rgb[0] / 255.0, rgb[1] / 255.0, rgb[2] / 255.0]
+    def getBGR(self):
+        return [self.blu, self.grn, self.red]
 
     def getLUV(self):
         return [self.l, self.u, self.v]
@@ -38,7 +40,7 @@ class ThreadEntry:
         return [luv[0] / 255.0, luv[1] / 255.0, luv[2] / 255.0]
 
     def __str__(self):
-        return "<Entry dmc=%s name=%s r=%s g=%s b=%s>" % (self.dmc_num, self.DisplayName, self.red, self.grn, self.blu)
+        return "<Entry dmc=%s name=%s r=%s g=%s b=%s luv [%s %s %s]>" % (self.dmc_num, self.DisplayName, self.red, self.grn, self.blu, self.l, self.u, self.v)
 
 def plotEntries3D(entries):
     import numpy as np
