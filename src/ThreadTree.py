@@ -24,9 +24,10 @@ class ThreadTree:
         self.entrylist = []
         for i, row in self.df.iterrows():
             entry = ThreadEntry(row["DisplayName"], row["DisplayNumStr"], row["dmc_num"], 
-                                row["red"], row["grn"], row["blu"], 
-                                row["hue"], row["sat"], row["val"], 
-                                row["l"], row["u"], row["v"])
+                                row["rgb_r"], row["rgb_g"], row["rgb_b"], 
+                                row["hsv_h"], row["hsv_s"], row["hsv_v"], 
+                                row["luv_l"], row["luv_u"], row["luv_v"], 
+                                row["lab_l"], row["lab_a"], row["lab_b"]) 
             self.entrylist.append(entry)
         kdtree_data = np.array([x.getLUV() for x in self.entrylist]) 
         self.kdtree = KDTree(kdtree_data)
@@ -36,7 +37,7 @@ class ThreadTree:
         Queries the internal kdtree for the closest thread to the given LUV tuple
         Returns both the distance and the ThreadEntry that's closest
         """
-        dist, idx = self.kdtree.query(luv_tuple, p=2)
+        dist, idx = self.kdtree.query(luv_tuple)
         print("Query for data %s resulted in %s" % (luv_tuple, self.entrylist[idx]))
         return (dist, self.entrylist[idx])
 
@@ -46,7 +47,7 @@ def main():
     """
     infile = "../data/dmc_readable.parquet"
     mytree = ThreadTree(infile)
-    testColor = np.array([64, 128, 128])
+    testColor = np.array([64, 80, 80])
     print("TestColor dist %s away from thread %s" % mytree.getClosestEntry(testColor))
 
 if __name__ == "__main__":
