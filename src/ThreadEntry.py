@@ -2,54 +2,91 @@
 
 from scipy.spatial import distance
 
+DEFAULT_DISTANCE_COLORSPACE = "LUV"
+
+class ColorSpace:
+    def __init__(self, name, x, y, z):
+        self.name = name
+        self.x = x
+        self.y = y
+        self.z = z
+
+    def getDistance(self, rh):
+        ours = (self.x, self.y, self.z)
+        theirs = (rh.x, rh.y, rh.z)
+        return distance.euclidean(x, y, z)
+
+    def getVals(self):
+        return [self.x, self.y, self.z]
+
+class RGB_CS(ColorSpace):
+    def __init__(self, x, y, z):
+        ColorSpace.__init__(self, "RGB", x, y, z)
+class HSV_CS(ColorSpace):
+    def __init__(self, x, y, z):
+        ColorSpace.__init__(self, "HSV", x, y, z)
+class LUV_CS(ColorSpace):
+    def __init__(self, x, y, z):
+        ColorSpace.__init__(self, "LUV", x, y, z)
+class LAB_CS(ColorSpace):
+    def __init__(self, x, y, z):
+        ColorSpace.__init__(self, "LAB", x, y, z)
+
 class ThreadEntry:
-    def __init__(self, DisplayName, DisplayNumStr, dmc_num, red, grn, blu, hue, sat, val, l, u, v):
+    def __init__(self, DisplayName, DisplayNumStr, dmc_num, 
+                rgb_r, rgb_g, rgb_b, 
+                hsv_h, hsv_s, hsv_v,
+                luv_l, luv_u, luv_v,
+                lab_l, lab_a, lab_b):
         self.DisplayName = DisplayName
         self.DisplayNumStr = DisplayNumStr
         self.dmc_num = dmc_num
-        self.red = red
-        self.grn = grn
-        self.blu = blu
-        self.hue = hue
-        self.sat = sat
-        self.val = val
-        self.l   = l
-        self.u   = u
-        self.v   = v
+        self.rgb = RGB_CS(rgb_r, rgb_g, rgb_b)
+        self.hsv = HSV_CS(hsv_h, hsv_s, hsv_v)
+        self.luv = LUV_CS(luv_l, luv_u, luv_v)
+        self.lab = LAB_CS(lab_l, lab_a, lab_b)
     
-    def calcColorDistance(self, rh):
+    def calcColorDistance(self, rh, colorspace=DEFAULT_DISTANCE_COLORSPACE):
         """
         Calculates the "distance" to the other color
         """
-        ours = (self.l, self.u, self.v)
-        theirs = (rh.l, rh.u, rh.v)
-        return distance.euclidean(ours, theirs)
+        # switch Colorspace
+        if colorspace == "RGB":
+            return self.rgb.distance(rh.rgb)
+        elif colorspace == "HSV":
+            return self.hsv.distance(rh.hsv)
+        elif colorspace ==  "LUV":
+            return self.luv.distance(rh.luv)
+        elif colorspace == "LAB":
+            return self.lab.distance(rh.lab)
+        else:
+            raise ValueError("Unsupported colorspace %s" % colorspace)
 
-    def getRGB(self):
-        return [self.red, self.grn, self.blu]
     def getRGBFloat(self):
-        rgb = self.getRGB()
-        return [rgb[0] / 255.0, rgb[1] / 255.0, rgb[2] / 255.0]
+        return self.rgb.getVals()
+    def getRGB(self):
+        rgbfloat = self.getRGBFloat()
+        return [int(rgbFloat[0] * 255), int(rgbFloat[1] * 255), int(rgbFloat[2] * 255)]
     def getBGR(self):
-        return [self.blu, self.grn, self.red]
+        rgb = self.getRGB()
+        return [rgb.b, rgb.g, rgb.r]
 
     def getLUV(self):
-        return [self.l, self.u, self.v]
-    def getLUVFloat(self):
-        luv = self.getLUV()
-        return [luv[0] / 255.0, luv[1] / 255.0, luv[2] / 255.0]
+        return self.luv.getVals()
+    def getLAB(self):
+        return self.lab.getVals()
 
     def __str__(self):
-        return "<Entry dmc=%s name=%s r=%s g=%s b=%s luv [%s %s %s]>" % (self.dmc_num, self.DisplayName, self.red, self.grn, self.blu, self.l, self.u, self.v)
+        return "<Entry dmc=%s name=%s r=%s g=%s b=%s luv [%s %s %s]>" % (self.dmc_num, self.DisplayName, self.rgb.x, self.rgb.y, self.rgb.z, self.luv.x, self.luv.y, self.luv.z)
 
 def plotEntries3D(entries):
     import numpy as np
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D # <--- This is important for 3d plotting 
 
-    xvals = np.array([x.l for x in entries])
-    yvals = np.array([x.u for x in entries])
-    zvals = np.array([x.v for x in entries])
+    xvals = np.array([x.luv.x for x in entries])
+    yvals = np.array([x.luv.y for x in entries])
+    zvals = np.array([x.luv.z for x in entries])
     cvals = np.array([x.getRGBFloat() for x in entries])
     names = [x.DisplayName for x in entries]
 
@@ -65,8 +102,11 @@ def plotEntries3D(entries):
     ax.xaxis.pane.set_edgecolor("b")
     ax.yaxis.pane.set_edgecolor("b")
     ax.zaxis.pane.set_edgecolor("b")
-    ax.patch.set_facecolor("black")
-    fig.patch.set_facecolor("black")
+    ax.set_xlabel("L Value")
+    ax.set_ylabel("U Value")
+    ax.set_zlabel("V Value")
+    ax.patch.set_facecolor("gray")
+    fig.patch.set_facecolor("gray")
 
 
     plt.show()
@@ -81,9 +121,10 @@ def main():
     entries = []
     for index, row in df.iterrows():
         entry = ThreadEntry(row["DisplayName"], row["DisplayNumStr"], row["dmc_num"], 
-                            row["red"], row["grn"], row["blu"], 
-                            row["hue"], row["sat"], row["val"], 
-                            row["l"], row["u"], row["v"])
+                            row["rgb_r"], row["rgb_g"], row["rgb_b"], 
+                            row["hsv_h"], row["hsv_s"], row["hsv_v"], 
+                            row["luv_l"], row["luv_u"], row["luv_v"], 
+                            row["lab_l"], row["lab_a"], row["lab_b"]) 
         entries.append(entry)
     plotEntries3D(entries)
 
