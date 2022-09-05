@@ -7,8 +7,18 @@ import numpy as np
 import cv2
 import os.path
 
-COL_NAMES=["DisplayName", "DisplayNumStr", "dmc_num", "anchor_num", "red", "grn", "blu", "hue", "sat", "val", "l",   "u",   "v"]
-COL_TYPES=["str",         "str",           "str",     "str",        "int", "int", "int", "int", "int", "int", "int", "int", "int"]
+COL_NAMES=["DisplayName", "DisplayNumStr", "dmc_num", 
+            "red", "grn", "blu", 
+            "rgb_r", "rgb_g", "rgb_b",
+            "hsv_h", "hsv_s", "hsv_v",
+            "luv_l", "luv_u", "luv_v",
+            "lab_l", "lab_a", "lab_b"]
+COL_TYPES=["str", "str", "str",
+            "int", "int", "int",
+            "float64", "float64", "float64",
+            "float64", "float64", "float64",
+            "float64", "float64", "float64",
+            "float64", "float64", "float64"]
 COL_DICT=dict(zip(COL_NAMES, [pd.Series(dtype=x) for x in COL_TYPES]))
 
 
@@ -21,7 +31,7 @@ def parse_args():
 
 def getColorValsFromHex(hexcode):
     """
-    Returns (r, g, b, h, s, v, l, u, v)
+    Returns (r, g, b, r_f, g_f, b_f, h, s, v, l, u, v, l, a, b)
     """
     rgb = tuple(int(hexcode[i:i+2], 16) for i in (0, 2, 4))
     # Create a numpy array for a single-pixel image
@@ -29,20 +39,33 @@ def getColorValsFromHex(hexcode):
     bgrPix[:,:,0] = rgb[2]
     bgrPix[:,:,1] = rgb[1]
     bgrPix[:,:,2] = rgb[0]
+    # Create the same, but in floating point
+    bgrF = bgrPix.astype(np.float32) / 255.0
+    hsvF = np.zeros([1, 1, 3], dtype=np.float32)
+    luvF = np.zeros([1, 1, 3], dtype=np.float32)
+    labF = np.zeros([1, 1, 3], dtype=np.float32)
     # Use OpenCV to convert color spaces
-    hsvPix = cv2.cvtColor(bgrPix, cv2.COLOR_BGR2HSV)
-    luvPix = cv2.cvtColor(bgrPix, cv2.COLOR_BGR2LUV)
+    hsvF = cv2.cvtColor(bgrF, cv2.COLOR_BGR2HSV)
+    luvF = cv2.cvtColor(bgrF, cv2.COLOR_BGR2LUV)
+    labF = cv2.cvtColor(bgrF, cv2.COLOR_BGR2LAB)
     
     return (bgrPix[0,0,2], bgrPix[0,0,1], bgrPix[0,0,0],
-            hsvPix[0,0,0], hsvPix[0,0,1], hsvPix[0,0,2],
-            hsvPix[0,0,0], hsvPix[0,0,1], hsvPix[0,0,2])
+            bgrF[0,0,2], bgrF[0,0,1], bgrF[0,0,0],
+            hsvF[0,0,0], hsvF[0,0,1], hsvF[0,0,2],
+            luvF[0,0,0], luvF[0,0,1], luvF[0,0,2],
+            labF[0,0,0], labF[0,0,1], labF[0,0,2])
 
 def addDMCEntryToDataframe(df, line):
     dmc_num = line["number"]
     name = line["readableName"]
     hexcode = line["hex"]
     cval = getColorValsFromHex(hexcode)
-    rowvals = [name, "dmc-%s" % dmc_num, dmc_num, None, cval[0], cval[1], cval[2], cval[3], cval[4], cval[5], cval[6], cval[7], cval[8]]
+    rowvals = [name, "dmc-%s" % dmc_num, dmc_num, 
+               cval[0], cval[1], cval[2], 
+               cval[3], cval[4], cval[5], 
+               cval[6], cval[7], cval[8],
+               cval[9], cval[10], cval[11],
+               cval[12], cval[13], cval[14]]
     df.loc[df.shape[0]] = rowvals
 
 def addJsonToDataframe(df, infile):
