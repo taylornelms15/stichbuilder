@@ -14,8 +14,19 @@ class ThreadTree:
         List of ThreadEntry objects, containing the same data
         KDTree containing the threads, spatially organized based on spatial relations
     """
+    def getEntrylistDataForTree(self, colorspace):
+        if colorspace == "RGB":
+            return np.array([x.getRGBFloat() for x in self.entrylist])
+        elif colorspace == "HSV":
+            return np.array([x.getHSV() for x in self.entrylist])
+        elif colorspace == "LUV":
+            return np.array([x.getLUV() for x in self.entrylist])
+        elif colorspace == "LAB":
+            return np.array([x.getLAB() for x in self.entrylist])
+        else:
+            raise ValueError("Unsupported color space %s" % colorspace)
 
-    def __init__(self, db_path):
+    def __init__(self, db_path, colorspace = "LUV"):
         """
         TODO: allow for soft-overloading where we don't necessarily need a db path?
         Eventually will want to be able to cull the KD tree for "low-thread-SKU" lookups
@@ -29,16 +40,16 @@ class ThreadTree:
                                 row["luv_l"], row["luv_u"], row["luv_v"], 
                                 row["lab_l"], row["lab_a"], row["lab_b"]) 
             self.entrylist.append(entry)
-        kdtree_data = np.array([x.getLUV() for x in self.entrylist]) 
+        self.colorspace = colorspace
+        kdtree_data = self.getEntrylistDataForTree(colorspace)
         self.kdtree = KDTree(kdtree_data)
     
-    def getClosestEntry(self, luv_tuple):
+    def getClosestEntry(self, cs_tuple):
         """
-        Queries the internal kdtree for the closest thread to the given LUV tuple
+        Queries the internal kdtree for the closest thread to the given in-colorspace tuple
         Returns both the distance and the ThreadEntry that's closest
         """
-        dist, idx = self.kdtree.query(luv_tuple)
-        print("Query for data %s resulted in %s" % (luv_tuple, self.entrylist[idx]))
+        dist, idx = self.kdtree.query(cs_tuple)
         return (dist, self.entrylist[idx])
 
 def main():

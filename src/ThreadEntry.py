@@ -65,12 +65,14 @@ class ThreadEntry:
     def getRGBFloat(self):
         return self.rgb.getVals()
     def getRGB(self):
-        rgbfloat = self.getRGBFloat()
+        rgbFloat = self.getRGBFloat()
         return [int(rgbFloat[0] * 255), int(rgbFloat[1] * 255), int(rgbFloat[2] * 255)]
     def getBGR(self):
         rgb = self.getRGB()
-        return [rgb.b, rgb.g, rgb.r]
+        return [rgb[2], rgb[1], rgb[0]]
 
+    def getHSV(self):
+        return self.hsv.getVals()
     def getLUV(self):
         return self.luv.getVals()
     def getLAB(self):
