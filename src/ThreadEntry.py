@@ -46,6 +46,18 @@ class ThreadEntry:
         self.luv = LUV_CS(luv_l, luv_u, luv_v)
         self.lab = LAB_CS(lab_l, lab_a, lab_b)
     
+    def getColor(self, colorspace):
+        if colorspace == "RGB":
+            return self.rgb.getVals()
+        elif colorspace == "HSV":
+            return self.hsv.getVals()
+        elif colorspace ==  "LUV":
+            return self.luv.getVals()
+        elif colorspace == "LAB":
+            return self.lab.getVals()
+        else:
+            raise ValueError("Unsupported colorspace %s" % colorspace)
+
     def calcColorDistance(self, rh, colorspace=DEFAULT_DISTANCE_COLORSPACE):
         """
         Calculates the "distance" to the other color
