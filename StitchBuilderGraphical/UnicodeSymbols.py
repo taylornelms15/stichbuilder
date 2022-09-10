@@ -11,7 +11,6 @@ class UnicodeSymbols:
       "\N{UPPER HALF CIRCLE}",
       "\N{LOWER HALF CIRCLE}",
       "\N{TILDE}",
-      "\N{BALLOT BOX WITH LIGHT X}",
       "\N{BOX DRAWINGS LIGHT DIAGONAL UPPER RIGHT TO LOWER LEFT}",
       "\N{BOX DRAWINGS LIGHT DIAGONAL UPPER LEFT TO LOWER RIGHT}",
       "\N{BOX DRAWINGS LIGHT DIAGONAL CROSS}",
@@ -49,6 +48,7 @@ class UnicodeSymbols:
       "\N{VIEWDATA SQUARE}",
       "\N{CYLINDRICITY}",
       "\N{EARTH GROUND}",
+      "\N{BALLOT BOX WITH LIGHT X}",
       "\N{ANKH}",
     ]
     self.chars_dark = [
