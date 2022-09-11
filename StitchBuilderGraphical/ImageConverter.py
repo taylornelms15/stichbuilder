@@ -35,7 +35,7 @@ class ImageConverter(object):
   ABSOLUTE_MIN_H = 12
   ABSOLUTE_MAX_H = 4096
 
-  ABSOLUTE_MIN_C = 3
+  ABSOLUTE_MIN_C = 2
   ABSOLUTE_MAX_C = 64
 
   def __init__(self):
@@ -51,14 +51,25 @@ class ImageConverter(object):
     self.results              = None
 
   def setMaxW(self, w):
-    if w < 0 or w > ImageConverter.ABSOLUTE_MAX_W:
-      raise ValueError("Invalid max width %s, must be in range [0:%s]" % (w, ImageConverter.ABSOLUTE_MAX_W))
+    if w < ImageConverter.ABSOLUTE_MIN_W or w > ImageConverter.ABSOLUTE_MAX_W:
+      raise ValueError("Invalid max width %s, must be in range [%s:%s]" % (w, ImageConverter.ABSOLUTE_MIN_W, ImageConverter.ABSOLUTE_MAX_W))
     self.max_w = int(w)
 
   def setMaxH(self, h):
-    if h < 0 or h > ImageConverter.ABSOLUTE_MAX_H:
-      raise ValueError("Invalid max height %s, must be in range [0:%s]" % (w, ImageConverter.ABSOLUTE_MAX_H))
+    if h < ImageConverter.ABSOLUTE_MIN_H or h > ImageConverter.ABSOLUTE_MAX_H:
+      raise ValueError("Invalid max height %s, must be in range [%s:%s]" % (h, ImageConverter.ABSOLUTE_MIN_H, ImageConverter.ABSOLUTE_MAX_H))
     self.max_h = int(h)
+
+  def setMaxC(self, c):
+    if c < ImageConverter.ABSOLUTE_MIN_C or c > ImageConverter.ABSOLUTE_MAX_C:
+      raise ValueError("Invalid number of colors %s, must be in range [%s:%s]" % (c, ImageConverter.ABSOLUTE_MIN_C, ImageConverter.ABSOLUTE_MAX_C))
+    self.max_colors = c
+  
+  def setFilterStrength(self, strength):
+    self.filter_strength = strength
+
+  def setDither(self, val):
+    self.dither = val
 
   def setClusteringAlgorithm(self, alg):
     if alg not in ImageConverter.CLUSTERING_ALGORITHM_CHOICES:
@@ -108,7 +119,7 @@ class ImageConverter(object):
       return img
     new_w = int(scale_factor * w)
     new_h = int(scale_factor * h)
-    return cv2.resize(img, (new_h, new_w), interpolation=cv2.INTER_AREA)
+    return cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_AREA)
 
   @staticmethod
   def ditherImage(img, img_color, used_entries, colorspace):
@@ -170,6 +181,7 @@ class ImageConverter(object):
     self.img_unscaled     = img
     img = ImageConverter.scale_image(img, self.max_w, self.max_h)
     self.img              = img
+    print("Img size before scaling %s, after scaling %s" % (self.img_unscaled.shape, self.img.shape))
 
     # Structural parameters
     h, w, _ = img.shape
@@ -178,10 +190,12 @@ class ImageConverter(object):
     # Converting to our relevant colorspace
     img_float = img.astype(np.float32) / 255.0 # go from 8-bit to float bgr image
     # Filter the image slightly, to fight some noise before we collapse the color space in a subsequent step
-    if filter_strength > 0.0:
+    if self.filter_strength > 0.0:
         img_float = cv2.bilateralFilter(img_float, 15, self.filter_strength, self.filter_strength)
     img_conv = cv2.cvtColor(img_float, conversion_forward)  # move to conversion colorspace
     img_conv_unrolled = img_conv.reshape([w * h, 3])        # unroll for clustering algorithm
+
+    print("Converted to relevant colorspace, performed filtering")
 
     # Store post-filtering image
     self.img_post_filter  = (img_float * 255.0).astype(np.uint8)
@@ -196,12 +210,14 @@ class ImageConverter(object):
         labels = km.fit_predict(img_conv_unrolled)
         centers = km.cluster_centers_
 
+    print("Performed clustering")
+
     # Construct images from these centers
     labels = labels.reshape([h, w])
     self.img_reduced_colorspace = np.zeros([h, w, 3], dtype=np.float32)
     used_entries = {}
     for i, center in enumerate(centers):
-      num_pixels = np.count_nonzero(labels == 1) # May be useful for debugging?
+      num_pixels = np.count_nonzero(i == labels) # May be useful for debugging?
       _, entry = ttree.getClosestEntry(center)
       # Store the reduced-colorspace image
       self.img_reduced_colorspace[i == labels] = center
@@ -209,7 +225,7 @@ class ImageConverter(object):
         used_entries[entry] = num_pixels
 
     if self.dither:
-      self.img_thread_color, self.img_thread_array = ditherImage(img_conv, self.img_reduced_colorspace, used_entries, colorspace)
+      self.img_thread_color, self.img_thread_array = ImageConverter.ditherImage(img_conv, self.img_reduced_colorspace, used_entries, colorspace)
     else:
       self.img_thread_array = np.zeros([h, w], dtype=object)
       self.img_thread_color = np.zeros([h, w, 3], dtype=np.float32)
@@ -218,10 +234,14 @@ class ImageConverter(object):
         self.img_thread_array[i == labels] = entry
         self.img_thread_color[i == labels] = entry.getColor(colorspace)
 
+    print("Performed dithering and colorspace reduction")
+
     # At this point, have stored self.img_unscaled, self.img, self.img_post_filter, self.img_reduced_colorspace, self.img_thread_color, and self.img_thread_array
     # We'll convert the ones that aren't BGR 8-bit back to that space for the sake of consistency
-    self.img_reduced_colorspace = (cv2.cvtColor(self.img_reduced_colorspace, conversion_backward) * 255.0).astype(np.uint8)
-    self.img_thread_color = (cv2.cvtColor(self.img_thread_color, conversion_backward) * 255.0).astype(np.uint8)
+    self.img_reduced_colorspace = cv2.cvtColor(self.img_reduced_colorspace, conversion_backward)
+    self.img_thread_color = cv2.cvtColor(self.img_thread_color, conversion_backward)
+    self.img_reduced_colorspace = (self.img_reduced_colorspace * 255.0).astype(np.uint8)
+    self.img_thread_color = (self.img_thread_color * 255.0).astype(np.uint8)
 
     # Store all our results into the self.results object
     self.results = ImageConverterResultImages(self.img_unscaled, self.img, self.img_post_filter, self.img_reduced_colorspace, self.img_thread_color, self.img_thread_array) 
