@@ -61,6 +61,7 @@ class StitchBuilderGraphical(QWidget):
     img = self.loadTestImage()
     h, w, _ = img.shape
     self.ui.topPic.setImage(QImage(img, w, h, QImage.Format_BGR888))
+    #TODO: put a better top pic here?
 
     # File Path
     fileDisplay = self.ui.filePathDisplay
@@ -78,6 +79,20 @@ class StitchBuilderGraphical(QWidget):
     checkbox.toggled.connect(self.onDitherBoxChecked)
 
     # Spin Boxes (maxW, maxH, maxC)
+    self.initSpinBoxes()
+
+    # Convert Button
+    cButton = self.ui.convertButton
+    cButton.setEnabled(False)#initially no filepath, so set to disabled
+    cButton.clicked.connect(self.onConvertButton)
+
+    # Conversion Results
+    self.ui.OriginalImageLabel.setHidden(True)
+    self.ui.AfterFilterImageLabel.setHidden(True)
+    self.ui.ReducedColorspaceImageLabel.setHidden(True)
+    self.ui.ThreadColorImageLabel.setHidden(True)
+
+  def initSpinBoxes(self):
     wbox = self.ui.maxWSpinBox
     hbox = self.ui.maxHSpinBox
     cbox = self.ui.maxCSpinBox
@@ -93,17 +108,6 @@ class StitchBuilderGraphical(QWidget):
     self.args.maxW = wbox.value()
     self.args.maxH = hbox.value()
     self.args.maxC = cbox.value()
-
-    # Convert Button
-    cButton = self.ui.convertButton
-    cButton.setEnabled(False)#initially no filepath, so set to disabled
-    cButton.clicked.connect(self.onConvertButton)
-
-    # Conversion Results
-    self.ui.OriginalImageLabel.setHidden(True)
-    self.ui.AfterFilterImageLabel.setHidden(True)
-    self.ui.ReducedColorspaceImageLabel.setHidden(True)
-    self.ui.ThreadColorImageLabel.setHidden(True)
 
   def loadArgsIntoConverter(self):
     self.imageConverter.setMaxH(self.args.maxH)
@@ -149,6 +153,9 @@ class StitchBuilderGraphical(QWidget):
     self.ui.ThreadColorImageLabel.setHidden(False)
     self.ui.ThreadColorImageLabel.setImage(img_thread_color)
 
+    self.ui.RightSideScrollableContents.consumeImage(resultobj.img_thread_array)
+    self.repaint()
+
   @staticmethod
   def convertQImageToMat(img):
     h = img.height()
@@ -165,7 +172,7 @@ class StitchBuilderGraphical(QWidget):
   def onFilePathButton(self):
     supportedFormats = QImageReader.supportedImageFormats()
     text_filter = "Images ({})".format(" ".join(["*.{}".format(fo.data().decode()) for fo in supportedFormats]))
-    filename, _ = QFileDialog.getOpenFileName(self, "Open Image", filter=text_filter)
+    filename, _ = QFileDialog.getOpenFileName(self, "Open Image", dir=os.path.join("..", "data"), filter=text_filter)
     if len(filename) == 0:
       # User likely picked "cancel", don't change anything
       return

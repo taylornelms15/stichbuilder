@@ -83,6 +83,9 @@ class ThreadEntry:
         rgb = self.getRGB()
         return [rgb[2], rgb[1], rgb[0]]
 
+    def getLightness(self):
+        return self.luv.x
+
     def getHSV(self):
         return self.hsv.getVals()
     def getLUV(self):
@@ -90,8 +93,28 @@ class ThreadEntry:
     def getLAB(self):
         return self.lab.getVals()
 
+    def __repr__(self):
+        return self.__str__()
+
     def __str__(self):
         return "<Entry dmc=%s name=%s r=%s g=%s b=%s luv [%s %s %s]>" % (self.dmc_num, self.DisplayName, self.rgb.x, self.rgb.y, self.rgb.z, self.luv.x, self.luv.y, self.luv.z)
+
+    def __lt__(self, rh):
+      (mx, my, mz) = self.getLUV()
+      (tx, ty, tz) = rh.getLUV()
+      if mx < tx: return True
+      if mx > tx: return False
+      if my < ty: return True
+      if my > ty: return False
+      if mz < tz: return True
+      if mz > tz: return False
+      return (self.DisplayName < rh.DisplayName)
+
+    def __eq__(self, rh):
+      return self.DisplayName == rh.DisplayName
+
+    def __hash__(self):
+      return self.DisplayName.__hash__()
 
 def plotEntries3D(entries):
     import numpy as np

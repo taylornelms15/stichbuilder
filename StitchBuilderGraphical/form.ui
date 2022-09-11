@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>831</width>
-    <height>793</height>
+    <width>1385</width>
+    <height>998</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -108,7 +108,7 @@
           <number>4096</number>
          </property>
          <property name="value">
-          <number>1024</number>
+          <number>256</number>
          </property>
         </widget>
        </item>
@@ -134,7 +134,7 @@
           <number>4096</number>
          </property>
          <property name="value">
-          <number>1024</number>
+          <number>256</number>
          </property>
         </widget>
        </item>
@@ -154,13 +154,13 @@
        <item row="3" column="1">
         <widget class="QSpinBox" name="maxCSpinBox">
          <property name="minimum">
-          <number>15</number>
+          <number>3</number>
          </property>
          <property name="maximum">
           <number>4096</number>
          </property>
          <property name="value">
-          <number>15</number>
+          <number>16</number>
          </property>
         </widget>
        </item>
@@ -410,6 +410,23 @@
      </item>
     </layout>
    </item>
+   <item>
+    <widget class="QScrollArea" name="scrollArea">
+     <property name="widgetResizable">
+      <bool>true</bool>
+     </property>
+     <widget class="CrossStitchView" name="RightSideScrollableContents">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>678</width>
+        <height>978</height>
+       </rect>
+      </property>
+     </widget>
+    </widget>
+   </item>
   </layout>
  </widget>
  <customwidgets>
@@ -417,6 +434,12 @@
    <class>ImageLabel</class>
    <extends>QLabel</extends>
    <header>ImageLabel</header>
+  </customwidget>
+  <customwidget>
+   <class>CrossStitchView</class>
+   <extends>QWidget</extends>
+   <header>CrossStitchView</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>
