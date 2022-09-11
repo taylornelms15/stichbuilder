@@ -9,6 +9,15 @@ import os.path
 from sklearn.mixture import GaussianMixture
 from sklearn.cluster import KMeans
 
+class ImageConverterResultImages(object):
+  def __init__(self, img, img_scaled, img_post_filter, img_reduced_colorspace, img_thread_color, img_thread_array):
+    self.img                    = img
+    self.img_scaled             = img_scaled
+    self.img_post_filter        = img_post_filter
+    self.img_reduced_colorspace = img_reduced_colorspace
+    self.img_thread_color       = img_thread_color
+    self.img_thread_array       = img_thread_array
+
 class ImageConverter(object):
   """
   Idea of class functionality:
@@ -19,6 +28,8 @@ class ImageConverter(object):
   """
   CLUSTERING_ALGORITHM_CHOICES = ["KMEANS", "GMM"]
   COLORSPACE_CHOICES = ["RGB", "HSV", "LUV", "LAB"]
+  ABSOLUTE_MAX_W = 4096
+  ABSOLUTE_MAX_H = 4096
 
   def __init__(self):
     self.clustering_algorithm = "KMEANS"
@@ -28,15 +39,31 @@ class ImageConverter(object):
     self.max_colors           = 30
     self.dither               = True
     self.filter_strength      = 0.0
+    self.max_w                = ImageConverter.ABSOLUTE_MAX_W
+    self.max_h                = ImageConverter.ABSOLUTE_MAX_H
+    self.results              = None
+
+  def setMaxW(self, w):
+    if w < 0 or w > ImageConverter.ABSOLUTE_MAX_W:
+      raise ValueError("Invalid max width %s, must be in range [0:%s]" % (w, ImageConverter.ABSOLUTE_MAX_W))
+    self.max_w = int(w)
+
+  def setMaxH(self, h):
+    if h < 0 or h > ImageConverter.ABSOLUTE_MAX_H:
+      raise ValueError("Invalid max height %s, must be in range [0:%s]" % (w, ImageConverter.ABSOLUTE_MAX_H))
+    self.max_h = int(h)
 
   def setClusteringAlgorithm(self, alg):
-    if alg not in self.CLUSTERING_ALGORITHM_CHOICES:
-      raise ValueError("Invalid algorithm choice %s; valid choices are %s" % (alg, self.CLUSTERING_ALGORITHM_CHOICES))
+    if alg not in ImageConverter.CLUSTERING_ALGORITHM_CHOICES:
+      raise ValueError("Invalid algorithm choice %s; valid choices are %s" % (alg, ImageConverter.CLUSTERING_ALGORITHM_CHOICES))
     self.clustering_algorithm = alg
 
   def setColorspace(self, cs):
-    if cs not in self.COLORSPACE_CHOICES:
-      raise ValueError("Invalid colorspace choice %s; valid choices are %s" % (cs, self.COLORSPACE_CHOICES))
+    if cs not in ImageConverter.COLORSPACE_CHOICES:
+      raise ValueError("Invalid colorspace choice %s; valid choices are %s" % (cs, ImageConverter.COLORSPACE_CHOICES))
+    if self.colorspace == cs:
+      # No need to re-load the thread tree if the colorspace hasn't changed
+      return
     self.colorspace = cs
     self.loadThreadTree(self.ttree_path)
 
@@ -63,7 +90,7 @@ class ImageConverter(object):
   def scale_image(img, max_w, max_h):
     factor_x = 1.0
     factor_y = 1.0
-    w, h, d = img.shape
+    h, w, d = img.shape
     if (max_w is not None) and (max_w < w):
       factor_x = max_w * 1.0 / w
     if (max_h is not None) and (max_h < h):
@@ -132,6 +159,11 @@ class ImageConverter(object):
     ttree             = self.ttree
     colorspace        = self.colorspace
 
+    # Scale image
+    self.img_unscaled     = img
+    img = ImageConverter.scale_image(img, self.max_w, self.max_h)
+    self.img              = img
+
     # Structural parameters
     h, w, _ = img.shape
     conversion_forward, conversion_backward = self.getColorConversions(colorspace)
@@ -144,8 +176,7 @@ class ImageConverter(object):
     img_conv = cv2.cvtColor(img_float, conversion_forward)  # move to conversion colorspace
     img_conv_unrolled = img_conv.reshape([w * h, 3])        # unroll for clustering algorithm
 
-    # Store source image and post-filtering image
-    self.img              = img
+    # Store post-filtering image
     self.img_post_filter  = (img_float * 255.0).astype(np.uint8)
 
     # Apply clustering algorithm to determine simplified color space
@@ -180,10 +211,14 @@ class ImageConverter(object):
         self.img_thread_array[i == labels] = entry
         self.img_thread_color[i == labels] = entry.getColor(colorspace)
 
-    # At this point, have stored self.img, self.img_post_filter, self.img_reduced_colorspace, self.img_thread_color, and self.img_thread_color
+    # At this point, have stored self.img_unscaled, self.img, self.img_post_filter, self.img_reduced_colorspace, self.img_thread_color, and self.img_thread_array
     # We'll convert the ones that aren't BGR 8-bit back to that space for the sake of consistency
     self.img_reduced_colorspace = (cv2.cvtColor(self.img_reduced_colorspace, conversion_backward) * 255.0).astype(np.uint8)
     self.img_thread_color = (cv2.cvtColor(self.img_thread_color, conversion_backward) * 255.0).astype(np.uint8)
+
+    # Store all our results into the self.results object
+    self.results = ImageConverterResultImages(self.img_unscaled, self.img, self.img_post_filter, self.img_reduced_colorspace, self.img_thread_color, self.img_thread_array) 
+    return self.results
 
 
 
