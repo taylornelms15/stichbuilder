@@ -35,7 +35,6 @@ class StitchBuilderGraphical(QWidget):
     super().__init__(parent)
     self.ui = Ui_StitchBuilderGraphical()
     self.ui.setupUi(self)
-    self.setLayout(self.ui.verticalLayout)
 
     # Internal Model
     self.imageConverter = ImageConverter()
@@ -44,7 +43,7 @@ class StitchBuilderGraphical(QWidget):
     # Images
     img = self.loadTestImage()
     h, w, _ = img.shape
-    self.ui.topPic.setPixmap(QPixmap(QImage(img, w, h, QImage.Format_BGR888)))
+    self.ui.topPic.setImage(QImage(img, w, h, QImage.Format_BGR888))
 
     # File Path
     fileDisplay = self.ui.filePathDisplay
@@ -87,6 +86,7 @@ class StitchBuilderGraphical(QWidget):
     self.args.imgpath = filename
     loaded_image      = QImage(filename, format=QImage.Format_BGR888)
     #TODO: load this into the top image
+    self.ui.topPic.setImage(loaded_image)
     self.args.img = loaded_image
 
   def onFilterValueChanged(self, val):
