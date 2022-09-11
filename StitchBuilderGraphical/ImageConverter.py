@@ -28,8 +28,15 @@ class ImageConverter(object):
   """
   CLUSTERING_ALGORITHM_CHOICES = ["KMEANS", "GMM"]
   COLORSPACE_CHOICES = ["RGB", "HSV", "LUV", "LAB"]
+
+  ABSOLUTE_MIN_W = 12
   ABSOLUTE_MAX_W = 4096
+
+  ABSOLUTE_MIN_H = 12
   ABSOLUTE_MAX_H = 4096
+
+  ABSOLUTE_MIN_C = 3
+  ABSOLUTE_MAX_C = 64
 
   def __init__(self):
     self.clustering_algorithm = "KMEANS"

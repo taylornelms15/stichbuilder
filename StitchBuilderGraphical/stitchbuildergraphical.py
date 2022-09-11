@@ -4,9 +4,8 @@ import os.path
 import cv2
 
 from PySide6 import QtCore
-from PySide6.QtWidgets import QApplication, QWidget, QLabel
-from PySide6.QtGui import QImage, QPixmap
-
+from PySide6.QtWidgets import QApplication, QWidget, QLabel, QFileDialog
+from PySide6.QtGui import QImage, QPixmap, QImageReader
 
 #from UnicodeSymbols import UnicodeSymbols
 from ImageConverter import ImageConverter
@@ -22,20 +21,36 @@ GRID_COLUMN_COUNT = 6
 # Filter Slider parameters
 FILTER_SLIDER_MAX_REAL_VAL = 3.0
 
+class StitchBuilderArgs(object):
+  def __init__(self):
+    self.filterStrength = 0.0
+    self.maxW = ImageConverter.ABSOLUTE_MAX_W
+    self.maxH = ImageConverter.ABSOLUTE_MAX_H
+    self.dithering = True
+    self.imgpath = None
+
 class StitchBuilderGraphical(QWidget):
   def __init__(self, parent=None):
+    # Initialization
     super().__init__(parent)
     self.ui = Ui_StitchBuilderGraphical()
     self.ui.setupUi(self)
     self.setLayout(self.ui.verticalLayout)
 
+    # Internal Model
     self.imageConverter = ImageConverter()
+    self.args           = StitchBuilderArgs()
+
+    # Images
     img = self.loadTestImage()
     h, w, _ = img.shape
     self.ui.topPic.setPixmap(QPixmap(QImage(img, w, h, QImage.Format_BGR888)))
 
     # File Path
-    self.ui.filePathDisplay.setReadOnly(True)
+    fileDisplay = self.ui.filePathDisplay
+    fileButton  = self.ui.filePathButton
+    fileDisplay.setReadOnly(True)
+    fileButton.clicked.connect(self.onFilePathButton)
 
     # Filter Strength
     slider = self.ui.filterStrengthSlider
@@ -46,21 +61,52 @@ class StitchBuilderGraphical(QWidget):
     checkbox = self.ui.ditherCheckBox
     checkbox.toggled.connect(self.onDitherBoxChecked)
 
+    # Spin Boxes (maxW, maxH, maxC)
+    wbox = self.ui.maxWSpinBox
+    hbox = self.ui.maxHSpinBox
+    cbox = self.ui.maxCSpinBox
+    wbox.setMinimum(ImageConverter.ABSOLUTE_MIN_W)
+    hbox.setMinimum(ImageConverter.ABSOLUTE_MIN_H)
+    cbox.setMinimum(ImageConverter.ABSOLUTE_MIN_C)
+    wbox.setMaximum(ImageConverter.ABSOLUTE_MAX_W)
+    hbox.setMaximum(ImageConverter.ABSOLUTE_MAX_H)
+    cbox.setMaximum(ImageConverter.ABSOLUTE_MAX_C)
+
+    # Convert Button
+    cButton = self.ui.convertButton
+    cButton.setEnabled(False)#initially no filepath, so set to disabled
+
+  def onFilePathButton(self):
+    supportedFormats = QImageReader.supportedImageFormats()
+    text_filter = "Images ({})".format(" ".join(["*.{}".format(fo.data().decode()) for fo in supportedFormats]))
+    filename, _ = QFileDialog.getOpenFileName(self, "Open Image", filter=text_filter)
+    if len(filename) == 0:
+      # User likely picked "cancel", don't change anything
+      return
+    self.ui.filePathDisplay.setText(filename)
+    self.args.imgpath = filename
+    loaded_image      = QImage(filename, format=QImage.Format_BGR888)
+    #TODO: load this into the top image
+    self.args.img = loaded_image
 
   def onFilterValueChanged(self, val):
     if (val == 0):
       self.ui.filterStrengthLabel.setText("Off")
+      self.args.filterStrength = 0.0
     else:
       scaledVal = val * self.filterStep
       scaledValText = "{:4.1f}".format(scaledVal)
       self.ui.filterStrengthLabel.setText(scaledValText)
+      self.args.filterStrength = scaledVal
 
   def onDitherBoxChecked(self, val):
     print("Dither checkbox val: %s" % val)
     if (val):
       self.ui.ditherCheckBox.setText("Dithering On")
+      self.args.dithering = True
     else:
       self.ui.ditherCheckBox.setText("Dithering Off")
+      self.args.dithering = False
 
   def loadTestImage(self):
     test_path = os.path.join("..", "data", "zirda.webp")

@@ -1,3 +1,3 @@
 {
-    "files": ["ImageConverter.py","ThreadTree.py","ThreadEntry.py","UnicodeSymbols.py","stitchbuildergraphical.py","form.ui","build_database.py"]
+    "files": ["ImageConverter.py","ThreadTree.py","ThreadEntry.py","UnicodeSymbols.py","stitchbuildergraphical.py","form.ui","build_database.py","TopPreviewPic.py"]
 }
