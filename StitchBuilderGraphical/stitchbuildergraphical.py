@@ -153,7 +153,7 @@ class StitchBuilderGraphical(QWidget):
     self.ui.ThreadColorImageLabel.setHidden(False)
     self.ui.ThreadColorImageLabel.setImage(img_thread_color)
 
-    self.ui.RightSideScrollableContents.consumeImage(resultobj.img_thread_array)
+    self.ui.RightSideScrollableContents.consumeImage(resultobj.img_thread_array, bw=False)
     self.repaint()
 
   @staticmethod

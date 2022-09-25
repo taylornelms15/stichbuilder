@@ -1,3 +1,3 @@
 {
-    "files": ["ThreadTree.py","ThreadEntry.py","UnicodeSymbols.py","stitchbuildergraphical.py","form.ui","ImageConverter.py","build_database.py","ImageLabel.py","CrossStitchView.py"]
+    "files": ["ImageLabel.py","TextRectRenderer.py","ThreadEntry.py","ThreadTree.py","stitchbuildergraphical.py","form.ui","ImageConverter.py","UnicodeSymbols.py","CrossStitchView.py","build_database.py","KeyCreatorHeadless.py","CrossStitchKey.py"]
 }
