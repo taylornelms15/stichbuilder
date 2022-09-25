@@ -40,7 +40,7 @@ class CrossStitchKeyEntry(QtWidgets.QWidget):
   
   def setEntry(self, threadentry, symbol):
     # Determine text contents
-    self.text = threadentry.DisplayName
+    self.text = "%s (%s)" % (threadentry.DisplayNumStr, threadentry.DisplayName)
     self.statictext = QtGui.QStaticText(self.text)
 
     # Determine rectangles and top-left positions
@@ -95,14 +95,24 @@ class CrossStitchKeyNoScroll(QtWidgets.QWidget):
 
     print("Size hint for noscroll: %s" % self.sizeHint())
 
+  """
   def minimumSizeHint(self):
     if self.keyCreator is not None:
       #TODO: actually find out the "size" of the widget
       return QtCore.QSize(200, 200)
     else:
       return QtCore.QSize(200, 200)
+  """
 
   def consumeImage(self, img_thread_array, bw=False):
+    # Clear our grid layout of anything that was in there previously
+    for i in reversed(range(self.glayout.rowCount())):
+      for j in reversed(range(self.glayout.columnCount())):
+        item = self.glayout.itemAtPosition(i, j)
+        if item is not None:
+          item.widget().deleteLater()
+
+    # Create our array of ThreadEntry objects to serve as our colors
     self.keyCreator = KeyCreatorHeadless(img_thread_array)
     threadlist = list(self.keyCreator.keys())
     white_entry = None
@@ -114,13 +124,13 @@ class CrossStitchKeyNoScroll(QtWidgets.QWidget):
     if white_entry is not None:
       threads_sorted = [white_entry] + threads_sorted
 
-     
+    # Create and add widgets for each thread
     for i, t in enumerate(threads_sorted):
       entry_widget = CrossStitchKeyEntry(bw=False, font=CrossStitchKeyNoScroll.csKeyFont)
       entry_widget.setEntry(t, self.keyCreator[t])
       col = i % self.gcols
       row = i / self.gcols
-      self.glayout.addWidget(entry_widget, col, row)
+      self.glayout.addWidget(entry_widget, row, col)
     self.updateGeometry()
     self.repaint()
 
