@@ -1,7 +1,7 @@
 # This Python file uses the following encoding: utf-8
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QLabel
-from PySide6.QtGui import QPixmap
+from PySide6.QtGui import QPixmap, QImage
 
 
 class ImageLabel(QLabel):
@@ -14,7 +14,7 @@ class ImageLabel(QLabel):
       """
       Expects a QImage
       """
-      self.img = img
+      self.img = img.convertToFormat(QImage.Format_RGB32)
       self.resizeImage()#will force a repaint
 
     def resizeImage(self):

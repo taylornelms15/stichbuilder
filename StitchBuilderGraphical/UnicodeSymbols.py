@@ -82,6 +82,11 @@ class UnicodeSymbols:
     Given a number of ThreadEntry objects, assigns each a unicode symbol
     Returns a dict mapping {threadEntry: unicode string}
     """
+    # Take out white (special case)
+    white_entry = None
+    if len([x for x in tentry_list if x.dmc_num == "white"]):
+      white_entry = [x for x in tentry_list if x.dmc_num == "white"][0]
+      tentry_list = [x for x in tentry_list if x.dmc_num != "white"]
     # Sort our input colors based on lightness (descending)
     lightnessArray = np.array([x.getLightness() for x in tentry_list])
     sort_indexes = np.flip(np.argsort(lightnessArray))
@@ -113,6 +118,8 @@ class UnicodeSymbols:
 
     # Join our dictionaries and return
     retval = {**dark_dict, **med_dict, **light_dict}
+    if white_entry != None:
+      retval[white_entry] = " "
     return retval
 
 

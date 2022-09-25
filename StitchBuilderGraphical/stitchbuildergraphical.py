@@ -6,7 +6,7 @@ import numpy as np
 
 from PySide6 import QtCore
 from PySide6.QtWidgets import QApplication, QWidget, QLabel, QFileDialog
-from PySide6.QtGui import QImage, QImageReader
+from PySide6.QtGui import QImage, QImageReader, QPainter
 
 #from UnicodeSymbols import UnicodeSymbols
 from ImageConverter import ImageConverter, ImageConverterResultImages
@@ -154,6 +154,7 @@ class StitchBuilderGraphical(QWidget):
     self.ui.ThreadColorImageLabel.setImage(img_thread_color)
 
     self.ui.RightSideScrollableContents.consumeImage(resultobj.img_thread_array, bw=False)
+    self.ui.crossStitchKey.consumeImage(resultobj.img_thread_array, bw=False)
     self.repaint()
 
   @staticmethod
@@ -179,6 +180,14 @@ class StitchBuilderGraphical(QWidget):
     self.ui.filePathDisplay.setText(filename)
     self.args.imgpath = filename
     loaded_image      = QImage(filename, format=QImage.Format_BGR888)
+    if (loaded_image.hasAlphaChannel()):
+      print("Found an alpha channel, drawing it onto white background")
+      tmp = QImage(loaded_image.width(), loaded_image.height(), QImage.Format_BGR888)
+      tmp.fill(QtCore.Qt.white)
+      painter = QPainter(tmp)
+      painter.drawImage(QtCore.QPoint(0,0), loaded_image)
+      del painter
+      loaded_image = tmp.convertToFormat(QImage.Format_BGR888)
     self.ui.topPic.setImage(loaded_image)
     self.args.img = self.convertQImageToMat(loaded_image)
     self.ui.convertButton.setEnabled(True)

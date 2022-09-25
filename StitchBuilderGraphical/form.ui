@@ -429,7 +429,7 @@
       </widget>
      </item>
      <item>
-      <layout class="QGridLayout" name="gridLayout"/>
+      <widget class="CrossStitchKeyNoScroll" name="crossStitchKey" native="true"/>
      </item>
      <item>
       <widget class="Line" name="line_3">
@@ -469,6 +469,12 @@
    <class>CrossStitchView</class>
    <extends>QWidget</extends>
    <header>CrossStitchView</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>CrossStitchKeyNoScroll</class>
+   <extends>QWidget</extends>
+   <header location="global">CrossStitchKey</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

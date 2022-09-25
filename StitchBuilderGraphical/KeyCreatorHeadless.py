@@ -13,5 +13,8 @@ class KeyCreatorHeadless:
   def __getitem__(self, key):
     return self.entryToUnicodeDict[key]
 
+  def __len__(self):
+    return len(self.entryToUnicodeDict)
+
   def keys(self):
     return self.entryToUnicodeDict.keys()

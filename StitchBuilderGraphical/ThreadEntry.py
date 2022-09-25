@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-from scipy.spatial import distance
-
 DEFAULT_DISTANCE_COLORSPACE = "LUV"
 
 class ColorSpace:
@@ -10,11 +8,6 @@ class ColorSpace:
         self.x = x
         self.y = y
         self.z = z
-
-    def getDistance(self, rh):
-        ours = (self.x, self.y, self.z)
-        theirs = (rh.x, rh.y, rh.z)
-        return distance.euclidean(x, y, z)
 
     def getVals(self):
         return [self.x, self.y, self.z]
@@ -111,6 +104,8 @@ class ThreadEntry:
       return (self.DisplayName < rh.DisplayName)
 
     def __eq__(self, rh):
+      if not hasattr(rh, "DisplayName"):
+        return False
       return self.DisplayName == rh.DisplayName
 
     def __hash__(self):
