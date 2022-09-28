@@ -28,9 +28,10 @@ class StitchBuilderArgs(object):
     self.maxW = ImageConverter.ABSOLUTE_MAX_W
     self.maxH = ImageConverter.ABSOLUTE_MAX_H
     self.maxC = ImageConverter.ABSOLUTE_MAX_C
-    self.dithering = True
-    self.imgpath = None
-    self.img = None
+    self.dithering  = True
+    self.bw         = False
+    self.imgpath    = None
+    self.img        = None
 
 class ImageConverterWorker(QtCore.QObject):
   finished =  QtCore.Signal(ImageConverterResultImages)
@@ -77,6 +78,10 @@ class StitchBuilderGraphical(QWidget):
     # Dithering
     checkbox = self.ui.ditherCheckBox
     checkbox.toggled.connect(self.onDitherBoxChecked)
+
+    # B&W
+    checkbox = self.ui.bwCheckBox
+    checkbox.toggled.connect(self.onBWBoxChecked)
 
     # Spin Boxes (maxW, maxH, maxC)
     self.initSpinBoxes()
@@ -153,8 +158,8 @@ class StitchBuilderGraphical(QWidget):
     self.ui.ThreadColorImageLabel.setHidden(False)
     self.ui.ThreadColorImageLabel.setImage(img_thread_color)
 
-    self.ui.RightSideScrollableContents.consumeImage(resultobj.img_thread_array, bw=False)
-    self.ui.crossStitchKey.consumeImage(resultobj.img_thread_array, bw=False)
+    self.ui.crossStitchKey.consumeImage(resultobj.img_thread_array, bw=self.args.bw)
+    self.ui.RightSideScrollableContents.consumeImage(resultobj.img_thread_array, bw=self.args.bw)
     self.repaint()
 
   @staticmethod
@@ -211,8 +216,16 @@ class StitchBuilderGraphical(QWidget):
       self.ui.filterStrengthLabel.setText(scaledValText)
       self.args.filterStrength = scaledVal
 
+  def onBWBoxChecked(self, val):
+    if (val):
+      self.ui.bwCheckBox.setText("Black and White Pattern Output")
+      self.args.bw = True
+    else:
+      self.ui.bwCheckBox.setText("Color Pattern Output")
+      self.args.bw = False
+
+
   def onDitherBoxChecked(self, val):
-    print("Dither checkbox val: %s" % val)
     if (val):
       self.ui.ditherCheckBox.setText("Dithering On")
       self.args.dithering = True

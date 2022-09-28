@@ -126,7 +126,7 @@ class CrossStitchKeyNoScroll(QtWidgets.QWidget):
 
     # Create and add widgets for each thread
     for i, t in enumerate(threads_sorted):
-      entry_widget = CrossStitchKeyEntry(bw=False, font=CrossStitchKeyNoScroll.csKeyFont)
+      entry_widget = CrossStitchKeyEntry(bw=bw, font=CrossStitchKeyNoScroll.csKeyFont)
       entry_widget.setEntry(t, self.keyCreator[t])
       col = i % self.gcols
       row = i / self.gcols
