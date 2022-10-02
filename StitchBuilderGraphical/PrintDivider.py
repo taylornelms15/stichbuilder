@@ -37,7 +37,7 @@ class Rect(object):
 class PrintDivider(object):
   MAX_ROWS_PER_PAGE = 20 #NOTE: may go over this number with more overlap
   MAX_COLS_PER_PAGE = 20 #NOTE: may go over this number with more overlap
-  DEFAULT_OVERLAP   = 2
+  DEFAULT_OVERLAP   = 3
 
   def __init__(self, img_w, 
                      img_h, 

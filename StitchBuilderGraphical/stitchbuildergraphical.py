@@ -193,7 +193,7 @@ class StitchBuilderGraphical(QWidget):
 
     # Save results
     self.threadarray_results = resultobj.img_thread_array
-    self.img_thread_color    = resultobj.img_thread_color
+    self.img_thread_color    = img_thread_color
 
     # Change UI elements now that we have results
     self.ui.OriginalImageLabel.setHidden(False)

@@ -23,6 +23,8 @@ GRID_NUM_INTERVAL   = 10
 MARGINSIZE_IN = 0.5
 # Margin in unscaled pixels to leave around the stitch display view for grid markings
 GRID_LABEL_MARGIN_BASE_PX = SQUARE_SIDE_LEN_PX
+# Margin below the key for the preview image
+PREVIEW_IMAGE_MARGIN_BASE_PX = 12
 # Page rendering resolution, dots per inch
 RESOLUTION_DPI = 600
 # Factor used for scaling "screen" display to pdf printing
