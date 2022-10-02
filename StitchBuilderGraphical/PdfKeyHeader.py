@@ -23,7 +23,8 @@ class PdfKeyHeader(QFrame):
 
     # Construct "Key" label
     self.klabel = QtWidgets.QLabel("Key", self)
-    self.klabel.setText('<html><head/><body><p align="center"><span style=" font-size:{}pt; font-weight:700;">Key</span></p></body></html>'.format(16 * PdfKeyHeader.KEY_SIZEFACTOR))
+    fontsize = int(round(16 * PdfKeyHeader.KEY_SIZEFACTOR))
+    self.klabel.setText('<html><head/><body><p align="center"><span style=" font-size:{fontsize:d}pt; font-weight:700;">{text:s}</span></p></body></html>'.format(fontsize = fontsize, text="Key"))
     self.vlayout.addWidget(self.klabel, alignment=QtCore.Qt.AlignCenter)
 
 

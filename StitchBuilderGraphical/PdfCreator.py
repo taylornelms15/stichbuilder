@@ -36,24 +36,6 @@ class PdfCreator:
     # Create header key widget
     keyWidget = PdfKeyHeader.PdfKeyHeader()
     keyWidget.consumeImage(threadarray, bw, print_area_px.width())
-    """
-    # Set up KeyWidget parameters
-    unique_elements = np.unique(threadarray)
-    print("Counting %d unique elements in threadArray" % len(unique_elements))
-    columns = min(PdfCreator.MAX_COL_COUNT, len(unique_elements))
-
-    # Size key to available size
-    found_col_count = False
-    while not found_col_count:
-      # need to remake the keyWidget, otherwise deletions don't happen correctly before rendering and everything goes to hell
-      keyWidget = CrossStitchKeyNoScroll(sizefactor=PdfCreator.KEY_SIZEFACTOR)
-      keyWidget.consumeImage(threadarray, bw, columns=columns)
-      print("Trying column count %s, keyWidget width %s of print_size_pixels width %s" % (columns, keyWidget.sizeHint().width(), print_area_px.width()))
-      if keyWidget.sizeHint().width() < print_area_px.width():
-        found_col_count = True
-      else:
-        columns -= 1
-    """
 
     # Determine rendering position based on sizehint
     kwidth  = keyWidget.sizeHint().width()

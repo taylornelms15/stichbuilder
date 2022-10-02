@@ -2,6 +2,7 @@
 from PySide6 import QtCore, QtWidgets, QtGui
 from KeyCreatorHeadless import KeyCreatorHeadless
 from TextRectRenderer import TextRect
+import StitchConstants
 
 class CrossStitchKey(QtWidgets.QWidget):
 
@@ -94,8 +95,6 @@ class CrossStitchKeyEntry(QtWidgets.QWidget):
       self.renderTextRect.paint(painter)
 
 class CrossStitchKeyNoScroll(QtWidgets.QWidget):
-  FONT_BASE_SIZE_PT = 12
-  SQUARE_SIDE_LEN_PX  = 24
 
   def __init__(self, parent=None, sizefactor = 1.0):
     super().__init__(parent)
@@ -104,9 +103,8 @@ class CrossStitchKeyNoScroll(QtWidgets.QWidget):
     self.glayout = QtWidgets.QGridLayout()
     self.setLayout(self.glayout)
 
-    self.font = QtGui.QFont("sans-serif", pointSize=int(round(CrossStitchKeyNoScroll.FONT_BASE_SIZE_PT * sizefactor)))
-    print("font size %s" % int(round(CrossStitchKeyNoScroll.FONT_BASE_SIZE_PT * sizefactor)))
-    self.squaresize = int(round(CrossStitchKeyNoScroll.SQUARE_SIDE_LEN_PX * sizefactor))
+    self.font = QtGui.QFont("sans-serif", pointSize=int(round(StitchConstants.FONT_BASE_SIZE_PT * sizefactor)))
+    self.squaresize = int(round(StitchConstants.SQUARE_SIDE_LEN_PX * sizefactor))
 
   def clearOldContents(self):
     for i in reversed(range(self.glayout.rowCount())):
