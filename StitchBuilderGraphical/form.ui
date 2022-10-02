@@ -425,7 +425,7 @@
     </layout>
    </item>
    <item>
-    <layout class="QVBoxLayout" name="rightHalfVertLayout" stretch="0,1,0,5">
+    <layout class="QVBoxLayout" name="rightHalfVertLayout" stretch="0,1,0,5,0">
      <item>
       <widget class="QLabel" name="KeyLabel">
        <property name="sizePolicy">
@@ -463,10 +463,17 @@
           <x>0</x>
           <y>0</y>
           <width>676</width>
-          <height>777</height>
+          <height>752</height>
          </rect>
         </property>
        </widget>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="savePdfButton">
+       <property name="text">
+        <string>Save PDF</string>
+       </property>
       </widget>
      </item>
     </layout>

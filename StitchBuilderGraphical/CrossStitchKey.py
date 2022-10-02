@@ -27,32 +27,39 @@ class CrossStitchKeyEntry(QtWidgets.QWidget):
   visually looks like:
   [s] Thread Display Name
   """
-  EDGE_MARGIN         = 2
-  MID_MARGIN          = 4
-  SQUARE_SIDE_LEN_PX  = 24
 
-  def __init__(self, bw, font, parent=None):
+  def __init__(self, bw, font, squaresize, parent=None):
     super().__init__(parent)
     self.text = None
     self.renderWidget = None
     self.font = font
     self.bw = bw
+    self.squaresize = squaresize
+
+  @property
+  def edge_margin(self):
+    return int(self.squaresize / 12.0)
+
+  @property
+  def mid_margin(self):
+    return int(self.squaresize / 6.0)
   
   def setEntry(self, threadentry, symbol):
     # Determine text contents
     self.text = "%s (%s)" % (threadentry.DisplayNumStr, threadentry.DisplayName)
     self.statictext = QtGui.QStaticText(self.text)
+    self.statictext.prepare(font=self.font)
 
     # Determine rectangles and top-left positions
     stsize = self.statictext.size()
     self.stwidth = stsize.width()
     self.stheight = stsize.height()
 
-    tr_start_x = CrossStitchKeyEntry.EDGE_MARGIN
-    tr_start_y = CrossStitchKeyEntry.EDGE_MARGIN
-    tr_rect = QtCore.QRectF(tr_start_x, tr_start_y, CrossStitchKeyEntry.SQUARE_SIDE_LEN_PX, CrossStitchKeyEntry.SQUARE_SIDE_LEN_PX)
-    st_start_x = tr_start_x + CrossStitchKeyEntry.SQUARE_SIDE_LEN_PX + CrossStitchKeyEntry.MID_MARGIN
-    vert_extents = CrossStitchKeyEntry.SQUARE_SIDE_LEN_PX + 2 * CrossStitchKeyEntry.EDGE_MARGIN 
+    tr_start_x = self.edge_margin
+    tr_start_y = self.edge_margin
+    tr_rect = QtCore.QRectF(tr_start_x, tr_start_y, self.squaresize, self.squaresize)
+    st_start_x = tr_start_x + self.squaresize + self.mid_margin
+    vert_extents = self.squaresize + 2 * self.edge_margin
     st_start_y = (vert_extents - self.stheight) / 2.0
     self.st_topleft = QtCore.QPoint(st_start_x, st_start_y)
 
@@ -63,15 +70,18 @@ class CrossStitchKeyEntry(QtWidgets.QWidget):
     self.pen = QtGui.QPen(QtCore.Qt.black)
 
   def minimumSizeHint(self):
-    vert_extents = CrossStitchKeyEntry.SQUARE_SIDE_LEN_PX + 2 * CrossStitchKeyEntry.EDGE_MARGIN 
+    vert_extents = self.squaresize + 2 * self.edge_margin
     if self.text is not None:
-      horiz_extents = CrossStitchKeyEntry.EDGE_MARGIN * 2 + CrossStitchKeyEntry.MID_MARGIN
+      horiz_extents = self.edge_margin * 2 + self.mid_margin
       horiz_extents += self.stwidth
-      horiz_extents += CrossStitchKeyEntry.SQUARE_SIDE_LEN_PX
+      horiz_extents += self.squaresize
       vert_extents = max(vert_extents, self.stheight)#probably won't be text taller than square
     else:
       horiz_extents = 48
     return QtCore.QSize(horiz_extents, vert_extents)
+
+  def sizeHint(self):
+    return self.minimumSizeHint()
 
   def paintEvent(self, event):
     super().paintEvent(event)
@@ -79,38 +89,38 @@ class CrossStitchKeyEntry(QtWidgets.QWidget):
     painter.setRenderHint(QtGui.QPainter.Antialiasing)
     if self.text is not None:
       painter.setPen(self.pen)
+      painter.setFont(self.font)
       painter.drawStaticText(self.st_topleft, self.statictext)
       self.renderTextRect.paint(painter)
 
 class CrossStitchKeyNoScroll(QtWidgets.QWidget):
-  csKeyFont = QtGui.QFont("sans-serif", pointSize=12)
+  FONT_BASE_SIZE_PT = 12
+  SQUARE_SIDE_LEN_PX  = 24
 
-  def __init__(self, parent=None):
+  def __init__(self, parent=None, sizefactor = 1.0):
     super().__init__(parent)
     self.keyCreator = None
-    self.gcols = 4
 
     self.glayout = QtWidgets.QGridLayout()
     self.setLayout(self.glayout)
 
-    print("Size hint for noscroll: %s" % self.sizeHint())
+    self.font = QtGui.QFont("sans-serif", pointSize=int(round(CrossStitchKeyNoScroll.FONT_BASE_SIZE_PT * sizefactor)))
+    print("font size %s" % int(round(CrossStitchKeyNoScroll.FONT_BASE_SIZE_PT * sizefactor)))
+    self.squaresize = int(round(CrossStitchKeyNoScroll.SQUARE_SIDE_LEN_PX * sizefactor))
 
-  """
-  def minimumSizeHint(self):
-    if self.keyCreator is not None:
-      #TODO: actually find out the "size" of the widget
-      return QtCore.QSize(200, 200)
-    else:
-      return QtCore.QSize(200, 200)
-  """
-
-  def consumeImage(self, img_thread_array, bw=False):
-    # Clear our grid layout of anything that was in there previously
+  def clearOldContents(self):
     for i in reversed(range(self.glayout.rowCount())):
       for j in reversed(range(self.glayout.columnCount())):
         item = self.glayout.itemAtPosition(i, j)
         if item is not None:
           item.widget().deleteLater()
+          self.glayout.removeWidget(item.widget())
+    self.glayout.update()
+
+  def consumeImage(self, img_thread_array, bw, columns = 4):
+    self.gcols = columns
+    # Clear our grid layout of anything that was in there previously
+    self.clearOldContents()
 
     # Create our array of ThreadEntry objects to serve as our colors
     self.keyCreator = KeyCreatorHeadless(img_thread_array)
@@ -126,7 +136,7 @@ class CrossStitchKeyNoScroll(QtWidgets.QWidget):
 
     # Create and add widgets for each thread
     for i, t in enumerate(threads_sorted):
-      entry_widget = CrossStitchKeyEntry(bw=bw, font=CrossStitchKeyNoScroll.csKeyFont)
+      entry_widget = CrossStitchKeyEntry(bw=bw, font=self.font, squaresize=self.squaresize)
       entry_widget.setEntry(t, self.keyCreator[t])
       col = i % self.gcols
       row = i / self.gcols
@@ -137,5 +147,4 @@ class CrossStitchKeyNoScroll(QtWidgets.QWidget):
 
   def paintEvent(self, event):
     super().paintEvent(event)
-    print("Size hint for noscroll: %s\n\tevent rect %s event region %s" % (self.sizeHint(), event.rect(), event.region()))
 

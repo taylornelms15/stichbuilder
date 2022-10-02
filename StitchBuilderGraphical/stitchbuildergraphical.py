@@ -8,8 +8,8 @@ from PySide6 import QtCore
 from PySide6.QtWidgets import QApplication, QWidget, QLabel, QFileDialog
 from PySide6.QtGui import QImage, QImageReader, QPainter
 
-#from UnicodeSymbols import UnicodeSymbols
 from ImageConverter import ImageConverter, ImageConverterResultImages
+from PdfCreator import PdfCreator
 
 # Important:
 # You need to run the following command to generate the ui_form.py file
@@ -92,10 +92,15 @@ class StitchBuilderGraphical(QWidget):
     cButton.clicked.connect(self.onConvertButton)
 
     # Conversion Results
+    self.threadarray_results = None
     self.ui.OriginalImageLabel.setHidden(True)
     self.ui.AfterFilterImageLabel.setHidden(True)
     self.ui.ReducedColorspaceImageLabel.setHidden(True)
     self.ui.ThreadColorImageLabel.setHidden(True)
+
+    # PDF Button
+    self.ui.savePdfButton.setHidden(True)
+    self.ui.savePdfButton.clicked.connect(self.onSavePdfButton)
 
   def initSpinBoxes(self):
     wbox = self.ui.maxWSpinBox
@@ -142,13 +147,28 @@ class StitchBuilderGraphical(QWidget):
     # Step 6: Start the thread
     self.thread.start()
 
+  def onSavePdfButton(self):
+    threadarray = self.threadarray_results
+    if threadarray is None:
+      # Should not happen
+      return
+    fileName, _ = QFileDialog.getSaveFileName(self, caption="Save Pdf",
+                               filter="PDF (*.pdf)")
+    pdfCreator = PdfCreator(fileName)
+    pdfCreator.consumeImage(threadarray, self.args.bw)
+
   def onConversionFinished(self, resultobj):
+    # Get results
     h, w, _ = resultobj.img_scaled.shape
-    print("Resulting h, w are %s, %s" % (h, w))
     img_scaled              = QImage(resultobj.img_scaled, w, h, QImage.Format_BGR888)
     after_filter            = QImage(resultobj.img_post_filter,  w, h, QImage.Format_BGR888)
     img_reduced_colorspace  = QImage(resultobj.img_reduced_colorspace,  w, h, QImage.Format_BGR888)
     img_thread_color        = QImage(resultobj.img_thread_color,  w, h, QImage.Format_BGR888)
+
+    # Save results
+    self.threadarray_results = resultobj.img_thread_array
+
+    # Change UI elements now that we have results
     self.ui.OriginalImageLabel.setHidden(False)
     self.ui.OriginalImageLabel.setImage(img_scaled)
     self.ui.AfterFilterImageLabel.setHidden(False)
@@ -157,6 +177,7 @@ class StitchBuilderGraphical(QWidget):
     self.ui.ReducedColorspaceImageLabel.setImage(img_reduced_colorspace)
     self.ui.ThreadColorImageLabel.setHidden(False)
     self.ui.ThreadColorImageLabel.setImage(img_thread_color)
+    self.ui.savePdfButton.setHidden(False)
 
     self.ui.crossStitchKey.consumeImage(resultobj.img_thread_array, bw=self.args.bw)
     self.ui.RightSideScrollableContents.consumeImage(resultobj.img_thread_array, bw=self.args.bw)

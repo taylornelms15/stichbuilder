@@ -56,10 +56,6 @@ class CrossStitchView(QtWidgets.QWidget):
     self.updateGeometry()
     self.repaint()
 
-    #self.createTestPdf()
-
-
-
   def paintEvent(self, event):
     super().paintEvent(event)
     painter = QtGui.QPainter(self)
