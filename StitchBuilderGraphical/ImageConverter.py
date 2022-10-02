@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 
+import sys
+import os
 import numpy as np
 import cv2
 from ThreadTree import ThreadTree
 from scipy.spatial import KDTree
-import os.path
+from pathlib import Path
+import StitchConstants
 
 from sklearn.mixture import GaussianMixture
 from sklearn.cluster import KMeans
@@ -41,7 +44,12 @@ class ImageConverter(object):
   def __init__(self):
     self.clustering_algorithm = "KMEANS"
     self.colorspace           = "LUV"
-    self.ttree_path           = os.path.join("..", "data", "dmc_readable.parquet") 
+    if StitchConstants.FROZEN:
+      self.ttree_path           = os.path.join(Path(sys._MEIPASS), "data", "dmc_readable.parquet")
+    else:
+      self.ttree_path           = os.path.join("..", "data", "dmc_readable.parquet")
+    if not os.path.isfile(self.ttree_path):
+      raise ValueError("Could not find dmc_readable.parquet, contents of %s are %s" % (os.path.join(Path(sys._MEIPASS), "data"), os.listdir(os.path.join(Path(sys._MEIPASS), "data"))))
     self.ttree                = ThreadTree(self.ttree_path)
     self.max_colors           = 30
     self.dither               = True

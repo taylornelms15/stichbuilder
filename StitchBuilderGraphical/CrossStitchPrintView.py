@@ -19,6 +19,7 @@ class CrossStitchPrintView(QtWidgets.QWidget):
     self.img_thread_array = None
     self.text_rects       = None
     self.staticTexts      = None
+    self.staticLines      = None
     self.sizefactor       = sizefactor
 
     # Set font sizes, square sizes
@@ -60,9 +61,11 @@ class CrossStitchPrintView(QtWidgets.QWidget):
     view_rect has tl_x(), tl_y(), width, and height
     we also have a GRID_NUM_INTERVAL
     want to create a horizontal label for each number in [tl_x():tl_x()+width] where number % GRID_NUM_INTERVAL == 0
+    Returns: ([statictexttuples], [linepoints])
     """
     # Predefine our return value list
     retval = []
+    retval_lines = []
 
     # Find out where conceptually we need to draw labels
     xvals = np.arange(view_rect.x(), view_rect.x() + view_rect.width())  #+ 1 # ADDING 1 FOR HUMAN INDEXING
@@ -90,6 +93,7 @@ class CrossStitchPrintView(QtWidgets.QWidget):
       point2 = (p_x, p_y2)
       retval.append((QtGui.QStaticText("{:d}".format(number)), point1, "T"))
       retval.append((QtGui.QStaticText("{:d}".format(number)), point2, "B"))
+      retval_lines.append((QtCore.QPointF(point1[0], point1[1]), QtCore.QPointF(point2[0], point2[1])))
     for i, number in enumerate(ylabel_numbers):
       p_y  = ylabel_positions_y[i]
       p_x1 = ylabel_position_x1
@@ -98,8 +102,9 @@ class CrossStitchPrintView(QtWidgets.QWidget):
       point2 = (p_x2, p_y)
       retval.append((QtGui.QStaticText("{:d}".format(number)), point1, "L"))
       retval.append((QtGui.QStaticText("{:d}".format(number)), point2, "R"))
+      retval_lines.append((QtCore.QPointF(point1[0], point1[1]), QtCore.QPointF(point2[0], point2[1])))
 
-    return retval
+    return (retval, retval_lines)
 
   def consumeImage(self, img_thread_array, bw, view_rect = None):
     """
@@ -130,7 +135,7 @@ class CrossStitchPrintView(QtWidgets.QWidget):
     self.text_rects = np.frompyfunc(TextRect.initPyFunc, 5, 1)(trbounds, texts, self.img_thread_array, bw, self.font)
 
     # Construct the StaticText objects for grid markings
-    self.staticTexts = self.constructStaticTexts(view_rect)
+    self.staticTexts, self.staticLines = self.constructStaticTexts(view_rect)
 
     self.updateGeometry()
     self.repaint()
@@ -169,9 +174,16 @@ class CrossStitchPrintView(QtWidgets.QWidget):
     for (st, point, orientation) in staticTextTuples:
       CrossStitchPrintView.renderStaticText(painter, st, point, orientation, font)
 
+  def renderStaticLines(self, painter, staticLinePairs):
+    pen = QtGui.QPen(QtCore.Qt.black)
+    pen.setWidthF(3.0 * self.sizefactor)
+    painter.setPen(pen)
+    for (p1, p2) in staticLinePairs:
+      painter.drawLine(p1, p2)
+
   def paintEvent(self, event):
     super().paintEvent(event)
-    #TODO: bound this method to event.rect()
+    #TODO: bound this method within event.rect()
     painter = QtGui.QPainter(self)
     painter.setRenderHint(QtGui.QPainter.Antialiasing)
     if self.text_rects is not None:
@@ -180,6 +192,8 @@ class CrossStitchPrintView(QtWidgets.QWidget):
           tr.paint(painter)
     if self.staticTexts is not None:
       CrossStitchPrintView.renderStaticTexts(painter, self.staticTexts, self.font)
+    if self.staticLines is not None:
+      self.renderStaticLines(painter, self.staticLines)
     painter.end()
 
 

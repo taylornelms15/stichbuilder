@@ -3,6 +3,7 @@ import sys
 import os.path
 import cv2
 import numpy as np
+from pathlib import Path
 
 from PySide6 import QtCore
 from PySide6.QtWidgets import QApplication, QWidget, QLabel, QFileDialog
@@ -10,12 +11,16 @@ from PySide6.QtGui import QImage, QImageReader, QPainter
 
 from ImageConverter import ImageConverter, ImageConverterResultImages
 from PdfCreator import PdfCreator
+import StitchConstants
 
 # Important:
 # You need to run the following command to generate the ui_form.py file
 #     pyside6-uic form.ui -o ui_form.py, or
 #     pyside2-uic form.ui -o ui_form.py
 from ui_form import Ui_StitchBuilderGraphical
+
+# Filepath for dialogs
+DIALOG_PATH = Path.home()
 
 GRID_COLUMN_COUNT = 6
 
@@ -68,6 +73,7 @@ class StitchBuilderGraphical(QWidget):
     super().__init__(parent)
     self.ui = Ui_StitchBuilderGraphical()
     self.ui.setupUi(self)
+    self.setWindowTitle(StitchConstants.PROGRAM_NAME)
 
     # Internal Model
     self.imageConverter = ImageConverter()
@@ -226,7 +232,11 @@ class StitchBuilderGraphical(QWidget):
   def onFilePathButton(self):
     supportedFormats = QImageReader.supportedImageFormats()
     text_filter = "Images ({})".format(" ".join(["*.{}".format(fo.data().decode()) for fo in supportedFormats]))
-    filename, _ = QFileDialog.getOpenFileName(self, "Open Image", dir=os.path.join("..", "data"), filter=text_filter)
+    if StitchConstants.FROZEN:
+      dpath = DIALOG_PATH
+    else:
+      dpath = os.path.join("..", "data")
+    filename, _ = QFileDialog.getOpenFileName(self, "Open Image", dir=dpath, filter=text_filter)
     if len(filename) == 0:
       # User likely picked "cancel", don't change anything
       return
@@ -282,7 +292,10 @@ class StitchBuilderGraphical(QWidget):
       self.args.dithering = False
 
   def loadTestImage(self):
-    test_path = os.path.join("..", "data", "zirda.webp")
+    if StitchConstants.FROZEN:
+      test_path = os.path.join("data", "InputAnImage.png")
+    else:
+      test_path = os.path.join("..", "data", "InputAnImage.png")
     img = cv2.imread(test_path, cv2.IMREAD_UNCHANGED)
     if (img.shape[2] > 3):
       trans_mask = (0 == img[:,:,3])
