@@ -243,10 +243,21 @@ class ImageConverter(object):
     self.img_reduced_colorspace = (self.img_reduced_colorspace * 255.0).astype(np.uint8)
     self.img_thread_color = (self.img_thread_color * 255.0).astype(np.uint8)
 
+    # Convert output images to a format that Qt is going to be happier with
+    self.img_unscaled           = self.convertImageBGR2RGBA(self.img_unscaled)
+    self.img                    = self.convertImageBGR2RGBA(self.img)
+    self.img_post_filter        = self.convertImageBGR2RGBA(self.img_post_filter)
+    self.img_reduced_colorspace = self.convertImageBGR2RGBA(self.img_reduced_colorspace)
+    self.img_thread_color       = self.convertImageBGR2RGBA(self.img_thread_color)
+
     # Store all our results into the self.results object
     self.results = ImageConverterResultImages(self.img_unscaled, self.img, self.img_post_filter, self.img_reduced_colorspace, self.img_thread_color, self.img_thread_array) 
     return self.results
 
+  @staticmethod
+  def convertImageBGR2RGBA(img):
+    # Have to do it in two steps because no cv2.COLOR_BGR2RGBA in python
+    return cv2.cvtColor(cv2.cvtColor(img, cv2.COLOR_BGR2RGB), cv2.COLOR_RGB2RGBA)
 
 
 

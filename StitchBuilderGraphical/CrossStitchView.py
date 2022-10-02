@@ -45,6 +45,7 @@ class CrossStitchView(QtWidgets.QWidget):
 
   def paintEvent(self, event):
     super().paintEvent(event)
+    #TODO: bound this method to the region in event.rect()
     painter = QtGui.QPainter(self)
 
     painter.setRenderHint(QtGui.QPainter.Antialiasing)

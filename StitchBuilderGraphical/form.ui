@@ -457,7 +457,7 @@
        <property name="widgetResizable">
         <bool>true</bool>
        </property>
-       <widget class="CrossStitchView" name="RightSideScrollableContents">
+       <widget class="CrossStitchPrintView" name="RightSideScrollableContents">
         <property name="geometry">
          <rect>
           <x>0</x>
@@ -487,15 +487,15 @@
    <header>ImageLabel</header>
   </customwidget>
   <customwidget>
-   <class>CrossStitchView</class>
-   <extends>QWidget</extends>
-   <header>CrossStitchView</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>CrossStitchKeyNoScroll</class>
    <extends>QWidget</extends>
    <header location="global">CrossStitchKey</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>CrossStitchPrintView</class>
+   <extends>QWidget</extends>
+   <header location="global">CrossStitchPrintView</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

@@ -47,6 +47,21 @@ class ImageConverterWorker(QtCore.QObject):
     print("Conversion ending")
     self.finished.emit(results)
 
+class PdfCreatorWorker(QtCore.QObject):
+  finished = QtCore.Signal()
+  def __init__(self, filename, img_threadcolor, threadarray, bw, parent=None):
+    super().__init__(parent)
+    self.pdfCreator = PdfCreator(filename)
+    self.img_threadcolor = img_threadcolor
+    self.threadarray = threadarray
+    self.bw = bw
+
+  def run(self):
+    print("Starting to write pdf")
+    self.pdfCreator.consumeImage(self.threadarray, self.bw, self.img_threadcolor)
+    print("Finished writing PDF")
+    self.finished.emit()
+
 class StitchBuilderGraphical(QWidget):
   def __init__(self, parent=None):
     # Initialization
@@ -154,19 +169,31 @@ class StitchBuilderGraphical(QWidget):
       return
     fileName, _ = QFileDialog.getSaveFileName(self, caption="Save Pdf",
                                filter="PDF (*.pdf)")
-    pdfCreator = PdfCreator(fileName)
-    pdfCreator.consumeImage(threadarray, self.args.bw)
+    # Create a QThread object
+    self.thread2 = QtCore.QThread()
+    # Step 3: Create a worker object
+    self.worker2 = PdfCreatorWorker(fileName, self.img_thread_color, threadarray, self.args.bw)
+    # Step 4: Move worker to the thread
+    self.worker2.moveToThread(self.thread2)
+    # Step 5: Connect signals and slots
+    self.thread2.started.connect(self.worker2.run)
+    self.worker2.finished.connect(self.thread2.quit)
+    self.worker2.finished.connect(self.worker2.deleteLater)
+    self.thread2.finished.connect(self.thread2.deleteLater)
+    # Step 6: Start the thread
+    self.thread2.start()
 
   def onConversionFinished(self, resultobj):
     # Get results
     h, w, _ = resultobj.img_scaled.shape
-    img_scaled              = QImage(resultobj.img_scaled, w, h, QImage.Format_BGR888)
-    after_filter            = QImage(resultobj.img_post_filter,  w, h, QImage.Format_BGR888)
-    img_reduced_colorspace  = QImage(resultobj.img_reduced_colorspace,  w, h, QImage.Format_BGR888)
-    img_thread_color        = QImage(resultobj.img_thread_color,  w, h, QImage.Format_BGR888)
+    img_scaled              = QImage(resultobj.img_scaled, w, h, QImage.Format_RGBA8888)
+    after_filter            = QImage(resultobj.img_post_filter,  w, h, QImage.Format_RGBA8888)
+    img_reduced_colorspace  = QImage(resultobj.img_reduced_colorspace,  w, h, QImage.Format_RGBA8888)
+    img_thread_color        = QImage(resultobj.img_thread_color,  w, h, QImage.Format_RGBA8888)
 
     # Save results
     self.threadarray_results = resultobj.img_thread_array
+    self.img_thread_color    = resultobj.img_thread_color
 
     # Change UI elements now that we have results
     self.ui.OriginalImageLabel.setHidden(False)

@@ -9,19 +9,30 @@ Simple data container for a rectangle
 """
 class Rect(object):
   def __init__(self, x, y, w, h):
-    self.x = x
-    self.y = y
-    self.w = w
-    self.h = h
+    self.tlx  = x
+    self.tly  = y
+    self.w    = w
+    self.h    = h
 
   def __repr__(self):
-    return "<Rect x[%s, %s] y[%s, %s]>" % (self.x, self.x + self.w, self.y, self.y + self.h)
+    return "<Rect x[%s, %s] y[%s, %s]>" % (self.x(), self.x() + self.w, self.y(), self.y() + self.h)
   def __str__(self):
     return self.__repr__()
   
   @property
   def shape(self):
     return (self.h, self.w)
+
+  def width(self):
+    return self.w
+  def height(self):
+    return self.h
+  def x(self):
+    return self.tlx
+  def y(self):
+    return self.tly
+  def topLeft(self):
+    return (self.tlx, self.tly)
 
 class PrintDivider(object):
   MAX_ROWS_PER_PAGE = 20 #NOTE: may go over this number with more overlap

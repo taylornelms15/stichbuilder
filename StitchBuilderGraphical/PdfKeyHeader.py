@@ -1,21 +1,20 @@
 # This Python file uses the following encoding: utf-8
 from PySide6 import QtCore
 from PySide6 import QtWidgets
-from PySide6.QtWidgets import QWidget, QFrame
+from PySide6.QtWidgets import QFrame
 
 import numpy as np
 
-import PdfCreator
 from CrossStitchKey import CrossStitchKeyNoScroll
+import StitchConstants
 
 class PdfKeyHeader(QFrame):
   MAX_COL_COUNT       = 8
-  KEY_SIZEFACTOR      = PdfCreator.DISPLAY_SIZEFACTOR * 0.6666 #smaller key rendering for aesthetics and page real estate
 
   def __init__(self, parent=None):
     super().__init__(parent)
     self.setFrameStyle(QFrame.StyledPanel | QFrame.Plain)
-    self.setLineWidth(4 * PdfKeyHeader.KEY_SIZEFACTOR)
+    self.setLineWidth(4 * StitchConstants.PRINT_SIZEFACTOR)
     self.keyWidget = None
 
     # Construct layout
@@ -23,7 +22,7 @@ class PdfKeyHeader(QFrame):
 
     # Construct "Key" label
     self.klabel = QtWidgets.QLabel("Key", self)
-    fontsize = int(round(16 * PdfKeyHeader.KEY_SIZEFACTOR))
+    fontsize = int(round(16 * StitchConstants.PRINT_SIZEFACTOR))
     self.klabel.setText('<html><head/><body><p align="center"><span style=" font-size:{fontsize:d}pt; font-weight:700;">{text:s}</span></p></body></html>'.format(fontsize = fontsize, text="Key"))
     self.vlayout.addWidget(self.klabel, alignment=QtCore.Qt.AlignCenter)
 
@@ -44,7 +43,7 @@ class PdfKeyHeader(QFrame):
     found_col_count = False
     while not found_col_count:
       # need to remake the keyWidget, otherwise deletions don't happen correctly before rendering and everything goes to hell
-      keyWidget = CrossStitchKeyNoScroll(sizefactor=PdfKeyHeader.KEY_SIZEFACTOR)
+      keyWidget = CrossStitchKeyNoScroll(sizefactor=StitchConstants.PRINT_SIZEFACTOR)
       keyWidget.consumeImage(threadarray, bw, columns=columns)
       print("Trying column count %s, keyWidget width %s of print_size_pixels width %s" % (columns, keyWidget.sizeHint().width(), maxWidth))
       if keyWidget.sizeHint().width() < maxWidth:

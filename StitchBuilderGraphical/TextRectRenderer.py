@@ -6,6 +6,10 @@ class TextRect(object):
   textLt = QtGui.QColor(255, 255, 255, 128)
   textBw = QtCore.Qt.black
 
+  @staticmethod
+  def initPyFunc(rect, text, entry, bw, font):
+    return TextRect(rect, text, entry, bw, font)
+
   def __init__(self, rect, text, entry, bw, font):
     self.rect = rect
     self.text = text
