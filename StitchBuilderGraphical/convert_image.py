@@ -4,7 +4,6 @@ import argparse
 import numpy as np
 import cv2
 import os.path
-import matplotlib.pyplot as plt
 
 from ThreadTree import ThreadTree
 from scipy.spatial import KDTree

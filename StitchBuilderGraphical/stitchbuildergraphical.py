@@ -293,7 +293,7 @@ class StitchBuilderGraphical(QWidget):
 
   def loadTestImage(self):
     if StitchConstants.FROZEN:
-      test_path = os.path.join("data", "InputAnImage.png")
+      test_path = os.path.join(os.path.dirname(__file__), "data", "InputAnImage.png")
     else:
       test_path = os.path.join("..", "data", "InputAnImage.png")
     img = cv2.imread(test_path, cv2.IMREAD_UNCHANGED)

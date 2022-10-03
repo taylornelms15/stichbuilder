@@ -51,15 +51,3 @@ class ThreadTree:
         """
         dist, idx = self.kdtree.query(cs_tuple)
         return (dist, self.entrylist[idx])
-
-def main():
-    """
-    Meant for dev, not meant for production
-    """
-    infile = "../data/dmc_readable.parquet"
-    mytree = ThreadTree(infile)
-    testColor = np.array([64, 80, 80])
-    print("TestColor dist %s away from thread %s" % mytree.getClosestEntry(testColor))
-
-if __name__ == "__main__":
-    main()

@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
 
-import sys
-import os
 import numpy as np
 import cv2
 from ThreadTree import ThreadTree
 from scipy.spatial import KDTree
-from pathlib import Path
+#from pathlib import Path
+import os.path
 import StitchConstants
 
-from sklearn.mixture import GaussianMixture
 from sklearn.cluster import KMeans
 
 class ImageConverterResultImages(object):
@@ -29,7 +27,7 @@ class ImageConverter(object):
   The View allows a user to adjust those arguments, and then re-run the conversion
   Once the conversion is complete, the program then stores the various output products that can be queried.
   """
-  CLUSTERING_ALGORITHM_CHOICES = ["KMEANS", "GMM"]
+  CLUSTERING_ALGORITHM_CHOICES = ["KMEANS"]
   COLORSPACE_CHOICES = ["RGB", "HSV", "LUV", "LAB"]
 
   ABSOLUTE_MIN_W = 12
@@ -45,11 +43,9 @@ class ImageConverter(object):
     self.clustering_algorithm = "KMEANS"
     self.colorspace           = "LUV"
     if StitchConstants.FROZEN:
-      self.ttree_path           = os.path.join(Path(sys._MEIPASS), "data", "dmc_readable.parquet")
+      self.ttree_path           = os.path.join(os.path.dirname(__file__), "data", "dmc_readable.parquet")
     else:
       self.ttree_path           = os.path.join("..", "data", "dmc_readable.parquet")
-    if not os.path.isfile(self.ttree_path):
-      raise ValueError("Could not find dmc_readable.parquet, contents of %s are %s" % (os.path.join(Path(sys._MEIPASS), "data"), os.listdir(os.path.join(Path(sys._MEIPASS), "data"))))
     self.ttree                = ThreadTree(self.ttree_path)
     self.max_colors           = 30
     self.dither               = True
@@ -209,11 +205,7 @@ class ImageConverter(object):
     self.img_post_filter  = (img_float * 255.0).astype(np.uint8)
 
     # Apply clustering algorithm to determine simplified color space
-    if self.clustering_algorithm == "GMM":
-        gm = GaussianMixture(mc, n_init=3, max_iter=100)
-        labels = gm.fit_predict(img_conv_unrolled)
-        centers = gm.means_
-    elif self.clustering_algorithm == "KMEANS":
+    if self.clustering_algorithm == "KMEANS":
         km = KMeans(mc, init="k-means++", n_init=3, max_iter=3000, tol=1.0e-5)
         labels = km.fit_predict(img_conv_unrolled)
         centers = km.cluster_centers_
