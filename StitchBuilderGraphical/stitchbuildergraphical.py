@@ -3,7 +3,6 @@ import sys
 import os.path
 import cv2
 import numpy as np
-from pathlib import Path
 
 from PySide6 import QtCore
 from PySide6.QtWidgets import QApplication, QWidget, QLabel, QFileDialog
@@ -18,9 +17,6 @@ import StitchConstants
 #     pyside6-uic form.ui -o ui_form.py, or
 #     pyside2-uic form.ui -o ui_form.py
 from ui_form import Ui_StitchBuilderGraphical
-
-# Filepath for dialogs
-DIALOG_PATH = Path.home()
 
 GRID_COLUMN_COUNT = 6
 
@@ -232,11 +228,7 @@ class StitchBuilderGraphical(QWidget):
   def onFilePathButton(self):
     supportedFormats = QImageReader.supportedImageFormats()
     text_filter = "Images ({})".format(" ".join(["*.{}".format(fo.data().decode()) for fo in supportedFormats]))
-    if StitchConstants.FROZEN:
-      dpath = DIALOG_PATH
-    else:
-      dpath = os.path.join("..", "data")
-    filename, _ = QFileDialog.getOpenFileName(self, "Open Image", dir=dpath, filter=text_filter)
+    filename, _ = QFileDialog.getOpenFileName(self, "Open Image", filter=text_filter)
     if len(filename) == 0:
       # User likely picked "cancel", don't change anything
       return

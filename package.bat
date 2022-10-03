@@ -1,9 +1,22 @@
 python -m nuitka ^
   --standalone ^
-  --clang ^
+  --mingw64 ^
   --assume-yes-for-downloads ^
   --enable-plugin=numpy ^
   --enable-plugin=pyside6 ^
+  --enable-plugin=anti-bloat ^
+  --enable-plugin=upx ^
   --include-data-files=data\dmc_readable.parquet=data\dmc_readable.parquet ^
   --include-data-files=data\InputAnImage.png=data\InputAnImage.png ^
+  --force-stdout-spec=%%PROGRAM%%.out.txt ^
+  --force-stderr-spec=%%PROGRAM%%.err.txt ^
+  --include-module=sklearn.tree ^
+  --include-module=sklearn.cluster ^
+  --include-module=scipy.spatial ^
+  --show-modules ^
+  --disable-console ^
+  --nofollow-import-to=torch ^
+  --noinclude-pytest-mode=nofollow ^
+  --noinclude-unittest-mode=nofollow ^
+  --windows-product-name="Taylor-Made Stitch Builder" ^
   .\StitchBuilderGraphical\stitchbuildergraphical.py

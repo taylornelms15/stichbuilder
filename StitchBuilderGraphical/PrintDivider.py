@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 from argparse import ArgumentParser, ArgumentTypeError
-import math
-
 import numpy as np
 
 """
@@ -34,6 +32,9 @@ class Rect(object):
   def topLeft(self):
     return (self.tlx, self.tly)
 
+def myCeil(n):
+    return int(-1 * n // 1 * -1)
+
 class PrintDivider(object):
   MAX_ROWS_PER_PAGE = 20 #NOTE: may go over this number with more overlap
   MAX_COLS_PER_PAGE = 20 #NOTE: may go over this number with more overlap
@@ -60,7 +61,7 @@ class PrintDivider(object):
   def getSplitsOneDimension(pagecols, img_w, overlap):
     # Determine some split characteristics
     pages_x_float = float(img_w) / pagecols
-    pages_x = int(math.ceil(pages_x_float))
+    pages_x = int(myCeil(pages_x_float))
     splits_x = pages_x - 1
     width_with_overlaps = img_w + overlap * splits_x
     cols_per_page_float = width_with_overlaps / float(pages_x)

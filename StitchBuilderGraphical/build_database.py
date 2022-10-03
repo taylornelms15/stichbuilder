@@ -91,7 +91,7 @@ def main():
     print(df)
     # By default, create output filename by changing extension of final input filename
     infile_name = infile.name
-    outfile_name = os.path.splitext(infile.name)[0] + ".parquet"
+    outfile_name = os.path.splitext(infile_name)[0] + ".parquet"
     df.to_parquet(outfile_name)
 
 
