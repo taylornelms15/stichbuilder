@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-import pandas as pd
+#import pandas as pd
+from pandas import read_parquet
 from scipy.spatial import KDTree
 import numpy as np
 
@@ -31,7 +32,8 @@ class ThreadTree:
         TODO: allow for soft-overloading where we don't necessarily need a db path?
         Eventually will want to be able to cull the KD tree for "low-thread-SKU" lookups
         """
-        self.df = pd.read_parquet(db_path) 
+        self.df = read_parquet(db_path)
+        #self.df = pd.read_parquet(db_path)
         self.entrylist = []
         for i, row in self.df.iterrows():
             entry = ThreadEntry(row["DisplayName"], row["DisplayNumStr"], row["dmc_num"], 

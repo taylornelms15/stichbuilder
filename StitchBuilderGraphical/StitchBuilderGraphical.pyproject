@@ -1,3 +1,3 @@
 {
-    "files": ["ThreadEntry.py","ThreadTree.py","build_database.py","stitchbuildergraphical.py","StitchConstants.py","CrossStitchPrintView.py","PdfKeyHeader.py","CrossStitchView.py","form.ui","ImageLabel.py","CrossStitchKey.py","TextRectRenderer.py","ImageConverter.py","KeyCreatorHeadless.py","UnicodeSymbols.py","PdfCreator.py","PrintDivider.py"]
+    "files": ["build_database.py","form.ui","ImageLabel.py","PrintDivider.py","TextRectRenderer.py","KeyCreatorHeadless.py","UnicodeSymbols.py","PdfCreator.py","ThreadTree.py","stitchbuildergraphical.py","StitchConstants.py","CrossStitchPrintView.py","PdfKeyHeader.py","CrossStitchKey.py","ImageConverter.py","ThreadEntry.py"]
 }

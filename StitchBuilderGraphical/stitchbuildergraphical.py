@@ -1,5 +1,6 @@
 # This Python file uses the following encoding: utf-8
-import sys
+import sys.argv
+import sys.exit
 import os.path
 import cv2
 import numpy as np

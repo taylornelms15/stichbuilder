@@ -4,7 +4,6 @@ import numpy as np
 import cv2
 from ThreadTree import ThreadTree
 from scipy.spatial import KDTree
-#from pathlib import Path
 import os.path
 import StitchConstants
 

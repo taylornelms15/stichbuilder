@@ -15,12 +15,24 @@ python -m nuitka ^
   --include-module=scipy.spatial ^
   --show-modules ^
   --disable-console ^
-  --nofollow-import-to=torch ^
+  --nofollow-import-to=email ^
+  --nofollow-import-to=html ^
+  --nofollow-import-to=http ^
+  --nofollow-import-to=jinja2 ^
   --nofollow-import-to=matplotlib ^
+  --nofollow-import-to=openpyxl ^
   --nofollow-import-to=sklearn.datasets ^
+  --nofollow-import-to=socket ^
+  --nofollow-import-to=socketserver ^
+  --nofollow-import-to=torch ^
+  --nofollow-import-to=webbrowser ^
   --noinclude-pytest-mode=nofollow ^
   --noinclude-unittest-mode=nofollow ^
   --noinclude-setuptools-mode=nofollow ^
   --upx-binary="C:\Users\taylo\upx-3.96-win64\upx.exe" ^
   --output-filename="Taylor-Made Stitch Builder.exe" ^
+  --windows-company-name="Taylor Nelms Productions" ^
+  --windows-file-version="0.9.0.1" ^
+  --windows-product-name="Taylor-Made Stitch Builder" ^
+  --windows-file-description="Program to convert images to cross-stitch patterns" ^
   .\StitchBuilderGraphical\stitchbuildergraphical.py
