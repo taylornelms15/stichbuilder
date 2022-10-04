@@ -5,7 +5,7 @@ import cv2
 import numpy as np
 
 from PySide6 import QtCore
-from PySide6.QtWidgets import QApplication, QWidget, QLabel, QFileDialog
+from PySide6.QtWidgets import QApplication, QWidget, QLabel, QFileDialog, QMessageBox
 from PySide6.QtGui import QImage, QImageReader, QPainter
 
 from ImageConverter import ImageConverter, ImageConverterResultImages
@@ -22,6 +22,10 @@ GRID_COLUMN_COUNT = 6
 
 # Filter Slider parameters
 FILTER_SLIDER_MAX_REAL_VAL = 2.0
+
+# Some text constants
+SAVE_PDF_BUTTON_TEXT_NORMAL   = "Save PDF"
+SAVE_PDF_BUTTON_TEXT_WORKING  = "Saving..."
 
 class StitchBuilderArgs(object):
   def __init__(self):
@@ -49,9 +53,10 @@ class ImageConverterWorker(QtCore.QObject):
     self.finished.emit(results)
 
 class PdfCreatorWorker(QtCore.QObject):
-  finished = QtCore.Signal()
+  finished = QtCore.Signal(str)
   def __init__(self, filename, img_threadcolor, threadarray, bw, parent=None):
     super().__init__(parent)
+    self.filename = filename
     self.pdfCreator = PdfCreator(filename)
     self.img_threadcolor = img_threadcolor
     self.threadarray = threadarray
@@ -61,7 +66,7 @@ class PdfCreatorWorker(QtCore.QObject):
     print("Starting to write pdf")
     self.pdfCreator.consumeImage(self.threadarray, self.bw, self.img_threadcolor)
     print("Finished writing PDF")
-    self.finished.emit()
+    self.finished.emit(self.filename)
 
 class StitchBuilderGraphical(QWidget):
   def __init__(self, parent=None):
@@ -116,6 +121,7 @@ class StitchBuilderGraphical(QWidget):
     self.ui.ThreadColorImageLabel.setHidden(True)
 
     # PDF Button
+    self.ui.savePdfButton.setText(SAVE_PDF_BUTTON_TEXT_NORMAL)
     self.ui.savePdfButton.setHidden(True)
     self.ui.savePdfButton.clicked.connect(self.onSavePdfButton)
 
@@ -161,6 +167,8 @@ class StitchBuilderGraphical(QWidget):
     self.worker.finished.connect(self.worker.deleteLater)
     self.thread.finished.connect(self.thread.deleteLater)
     self.worker.finished.connect(self.onConversionFinished)
+    # Step 5.5: disable the button to avoid multi-click
+    self.ui.convertButton.setEnabled(False)
     # Step 6: Start the thread
     self.thread.start()
 
@@ -182,10 +190,15 @@ class StitchBuilderGraphical(QWidget):
     self.worker2.finished.connect(self.thread2.quit)
     self.worker2.finished.connect(self.worker2.deleteLater)
     self.thread2.finished.connect(self.thread2.deleteLater)
+    self.worker2.finished.connect(self.onSavePdfFinished)
+    # Step 5.5: Disable the button, change text as indicator of progress
+    self.ui.savePdfButton.setEnabled(False)
+    self.ui.savePdfButton.setText(SAVE_PDF_BUTTON_TEXT_WORKING)
     # Step 6: Start the thread
     self.thread2.start()
 
   def onConversionFinished(self, resultobj):
+    self.ui.convertButton.setEnabled(True)
     # Get results
     h, w, _ = resultobj.img_scaled.shape
     img_scaled              = QImage(resultobj.img_scaled, w, h, QImage.Format_RGBA8888)
@@ -211,6 +224,12 @@ class StitchBuilderGraphical(QWidget):
     self.ui.crossStitchKey.consumeImage(resultobj.img_thread_array, bw=self.args.bw)
     self.ui.RightSideScrollableContents.consumeImage(resultobj.img_thread_array, bw=self.args.bw)
     self.repaint()
+
+  def onSavePdfFinished(self, filename):
+    self.ui.savePdfButton.setEnabled(True)
+    self.ui.savePdfButton.setText(SAVE_PDF_BUTTON_TEXT_NORMAL)
+    displayText = "Saved pdf to %s" % filename
+    QMessageBox.information(self, "Save Complete", displayText)
 
   @staticmethod
   def convertQImageToMat(img):

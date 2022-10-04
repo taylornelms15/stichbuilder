@@ -1,10 +1,10 @@
 python -m nuitka ^
   --standalone ^
+  --onefile ^
   --mingw64 ^
   --assume-yes-for-downloads ^
   --enable-plugin=numpy ^
   --enable-plugin=pyside6 ^
-  --enable-plugin=anti-bloat ^
   --enable-plugin=upx ^
   --include-data-files=data\dmc_readable.parquet=data\dmc_readable.parquet ^
   --include-data-files=data\InputAnImage.png=data\InputAnImage.png ^
@@ -16,7 +16,11 @@ python -m nuitka ^
   --show-modules ^
   --disable-console ^
   --nofollow-import-to=torch ^
+  --nofollow-import-to=matplotlib ^
+  --nofollow-import-to=sklearn.datasets ^
   --noinclude-pytest-mode=nofollow ^
   --noinclude-unittest-mode=nofollow ^
-  --windows-product-name="Taylor-Made Stitch Builder" ^
+  --noinclude-setuptools-mode=nofollow ^
+  --upx-binary="C:\Users\taylo\upx-3.96-win64\upx.exe" ^
+  --output-filename="Taylor-Made Stitch Builder.exe" ^
   .\StitchBuilderGraphical\stitchbuildergraphical.py
