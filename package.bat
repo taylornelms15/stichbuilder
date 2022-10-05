@@ -10,8 +10,6 @@ python -m nuitka ^
   --include-data-files=data\InputAnImage.png=data\InputAnImage.png ^
   --force-stdout-spec=%%PROGRAM%%.out.txt ^
   --force-stderr-spec=%%PROGRAM%%.err.txt ^
-  --include-module=sklearn.tree ^
-  --include-module=sklearn.cluster ^
   --include-module=scipy.spatial ^
   --show-modules ^
   --disable-console ^
@@ -32,7 +30,7 @@ python -m nuitka ^
   --upx-binary="C:\Users\taylo\upx-3.96-win64\upx.exe" ^
   --output-filename="Taylor-Made Stitch Builder.exe" ^
   --windows-company-name="Taylor Nelms Productions" ^
-  --windows-file-version="0.9.0.1" ^
+  --windows-file-version="0.9.0.3" ^
   --windows-product-name="Taylor-Made Stitch Builder" ^
   --windows-file-description="Program to convert images to cross-stitch patterns" ^
   .\StitchBuilderGraphical\stitchbuildergraphical.py

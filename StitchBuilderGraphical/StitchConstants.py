@@ -4,14 +4,9 @@
 This module is a place to store constants useful to a number of different processes
 It should remain relatively lean, mostly to avoid circular references or redeclarations
 """
-#import sys
 #*************************************************
 # DISTRIBUTION
 #*************************************************
-#if getattr( sys, 'frozen', False ) :
-#  FROZEN=True
-#else :
-#  FROZEN=False
 FROZEN = "__compiled__" in globals()
 PROGRAM_NAME = "Taylor-Made Stitch Builder"
 

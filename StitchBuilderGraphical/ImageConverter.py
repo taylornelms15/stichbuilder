@@ -7,8 +7,6 @@ from scipy.spatial import KDTree
 import os.path
 import StitchConstants
 
-from sklearn.cluster import KMeans
-
 class ImageConverterResultImages(object):
   def __init__(self, img, img_scaled, img_post_filter, img_reduced_colorspace, img_thread_color, img_thread_array):
     self.img                    = img
@@ -26,7 +24,6 @@ class ImageConverter(object):
   The View allows a user to adjust those arguments, and then re-run the conversion
   Once the conversion is complete, the program then stores the various output products that can be queried.
   """
-  CLUSTERING_ALGORITHM_CHOICES = ["KMEANS"]
   COLORSPACE_CHOICES = ["RGB", "HSV", "LUV", "LAB"]
 
   ABSOLUTE_MIN_W = 12
@@ -39,7 +36,6 @@ class ImageConverter(object):
   ABSOLUTE_MAX_C = 64
 
   def __init__(self):
-    self.clustering_algorithm = "KMEANS"
     self.colorspace           = "LUV"
     if StitchConstants.FROZEN:
       self.ttree_path           = os.path.join(os.path.dirname(__file__), "data", "dmc_readable.parquet")
@@ -73,11 +69,6 @@ class ImageConverter(object):
 
   def setDither(self, val):
     self.dither = val
-
-  def setClusteringAlgorithm(self, alg):
-    if alg not in ImageConverter.CLUSTERING_ALGORITHM_CHOICES:
-      raise ValueError("Invalid algorithm choice %s; valid choices are %s" % (alg, ImageConverter.CLUSTERING_ALGORITHM_CHOICES))
-    self.clustering_algorithm = alg
 
   def setColorspace(self, cs):
     if cs not in ImageConverter.COLORSPACE_CHOICES:
@@ -170,7 +161,7 @@ class ImageConverter(object):
     if colorspace_name == "LAB":
       return (cv2.COLOR_BGR2LAB, cv2.COLOR_LAB2BGR)
 
-  def convert(self, img):
+  def convert(self, img, callbacks = None):
     """
     Converts the input image according to the parameters loaded into the class
     Expects an 8-bit BGR input image, as if just loaded by cv2.imread(path_to_image)
@@ -184,6 +175,10 @@ class ImageConverter(object):
     self.img_unscaled     = img
     img = ImageConverter.scale_image(img, self.max_w, self.max_h)
     self.img              = img
+    # Output intermediary image
+    img_scaled_rgba       = self.convertImageBGR2RGBA(self.img)
+    if callbacks is not None and len(callbacks) > 0:
+      callbacks[0](img_scaled_rgba)
     print("Img size before scaling %s, after scaling %s" % (self.img_unscaled.shape, self.img.shape))
 
     # Structural parameters
@@ -202,12 +197,14 @@ class ImageConverter(object):
 
     # Store post-filtering image
     self.img_post_filter  = (img_float * 255.0).astype(np.uint8)
+    self.img_post_filter  = self.convertImageBGR2RGBA(self.img_post_filter)
+    # Output intermediary image
+    if callbacks is not None and len(callbacks) > 1:
+      callbacks[1](self.img_post_filter)
 
     # Apply clustering algorithm to determine simplified color space
-    if self.clustering_algorithm == "KMEANS":
-        km = KMeans(mc, init="k-means++", n_init=3, max_iter=3000, tol=1.0e-5)
-        labels = km.fit_predict(img_conv_unrolled)
-        centers = km.cluster_centers_
+    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 3000, 1.0e-5)
+    _, labels, centers = cv2.kmeans(img_conv_unrolled, K=mc, bestLabels=None, criteria=criteria, attempts=3, flags=cv2.KMEANS_RANDOM_CENTERS)
 
     print("Performed clustering")
 
@@ -244,13 +241,12 @@ class ImageConverter(object):
 
     # Convert output images to a format that Qt is going to be happier with
     self.img_unscaled           = self.convertImageBGR2RGBA(self.img_unscaled)
-    self.img                    = self.convertImageBGR2RGBA(self.img)
-    self.img_post_filter        = self.convertImageBGR2RGBA(self.img_post_filter)
+    self.img                    = img_scaled_rgba
     self.img_reduced_colorspace = self.convertImageBGR2RGBA(self.img_reduced_colorspace)
     self.img_thread_color       = self.convertImageBGR2RGBA(self.img_thread_color)
 
     # Store all our results into the self.results object
-    self.results = ImageConverterResultImages(self.img_unscaled, self.img, self.img_post_filter, self.img_reduced_colorspace, self.img_thread_color, self.img_thread_array) 
+    self.results = ImageConverterResultImages(self.img_unscaled, img_scaled_rgba, self.img_post_filter, self.img_reduced_colorspace, self.img_thread_color, self.img_thread_array)
     return self.results
 
   @staticmethod

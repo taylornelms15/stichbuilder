@@ -1,6 +1,5 @@
 # This Python file uses the following encoding: utf-8
-import sys.argv
-import sys.exit
+import sys
 import os.path
 import cv2
 import numpy as np
@@ -41,6 +40,8 @@ class StitchBuilderArgs(object):
 
 class ImageConverterWorker(QtCore.QObject):
   finished =  QtCore.Signal(ImageConverterResultImages)
+  scalingDone = QtCore.Signal(np.ndarray)
+  filterDone = QtCore.Signal(np.ndarray)
 
   def __init__(self, converter, img, parent=None):
     super().__init__(parent)
@@ -49,9 +50,14 @@ class ImageConverterWorker(QtCore.QObject):
 
   def run(self):
     print("Conversion starting")
-    results = self.convert.convert(self.img)
+    results = self.convert.convert(self.img, [self.scalingDoneCallback, self.filterDoneCallback])
     print("Conversion ending")
     self.finished.emit(results)
+
+  def scalingDoneCallback(self, img):
+    self.scalingDone.emit(img)
+  def filterDoneCallback(self, img):
+    self.filterDone.emit(img)
 
 class PdfCreatorWorker(QtCore.QObject):
   finished = QtCore.Signal(str)
@@ -168,6 +174,8 @@ class StitchBuilderGraphical(QWidget):
     self.worker.finished.connect(self.worker.deleteLater)
     self.thread.finished.connect(self.thread.deleteLater)
     self.worker.finished.connect(self.onConversionFinished)
+    self.worker.scalingDone.connect(self.onImageScalingFinished)
+    self.worker.filterDone.connect(self.onImageFilteringFinished)
     # Step 5.5: disable the button to avoid multi-click
     self.ui.convertButton.setEnabled(False)
     # Step 6: Start the thread
@@ -181,29 +189,39 @@ class StitchBuilderGraphical(QWidget):
     fileName, _ = QFileDialog.getSaveFileName(self, caption="Save Pdf",
                                filter="PDF (*.pdf)")
     # Create a QThread object
-    self.thread2 = QtCore.QThread()
+    self.pdf_thread = QtCore.QThread()
     # Step 3: Create a worker object
-    self.worker2 = PdfCreatorWorker(fileName, self.img_thread_color, threadarray, self.args.bw)
+    self.pdf_worker = PdfCreatorWorker(fileName, self.img_thread_color, threadarray, self.args.bw)
     # Step 4: Move worker to the thread
-    self.worker2.moveToThread(self.thread2)
+    self.pdf_worker.moveToThread(self.pdf_thread)
     # Step 5: Connect signals and slots
-    self.thread2.started.connect(self.worker2.run)
-    self.worker2.finished.connect(self.thread2.quit)
-    self.worker2.finished.connect(self.worker2.deleteLater)
-    self.thread2.finished.connect(self.thread2.deleteLater)
-    self.worker2.finished.connect(self.onSavePdfFinished)
+    self.pdf_thread.started.connect(self.pdf_worker.run)
+    self.pdf_worker.finished.connect(self.pdf_thread.quit)
+    self.pdf_worker.finished.connect(self.pdf_worker.deleteLater)
+    self.pdf_thread.finished.connect(self.pdf_thread.deleteLater)
+    self.pdf_worker.finished.connect(self.onSavePdfFinished)
     # Step 5.5: Disable the button, change text as indicator of progress
     self.ui.savePdfButton.setEnabled(False)
     self.ui.savePdfButton.setText(SAVE_PDF_BUTTON_TEXT_WORKING)
     # Step 6: Start the thread
-    self.thread2.start()
+    self.pdf_thread.start()
+
+  def onImageScalingFinished(self, img_scaled):
+    h, w, _ = img_scaled.shape
+    img_scaled              = QImage(img_scaled, w, h, QImage.Format_RGBA8888)
+    self.ui.OriginalImageLabel.setHidden(False)
+    self.ui.OriginalImageLabel.setImage(img_scaled)
+
+  def onImageFilteringFinished(self, img_post_filter):
+    h, w, _ = img_post_filter.shape
+    after_filter            = QImage(img_post_filter,  w, h, QImage.Format_RGBA8888)
+    self.ui.AfterFilterImageLabel.setHidden(False)
+    self.ui.AfterFilterImageLabel.setImage(after_filter)
 
   def onConversionFinished(self, resultobj):
     self.ui.convertButton.setEnabled(True)
     # Get results
     h, w, _ = resultobj.img_scaled.shape
-    img_scaled              = QImage(resultobj.img_scaled, w, h, QImage.Format_RGBA8888)
-    after_filter            = QImage(resultobj.img_post_filter,  w, h, QImage.Format_RGBA8888)
     img_reduced_colorspace  = QImage(resultobj.img_reduced_colorspace,  w, h, QImage.Format_RGBA8888)
     img_thread_color        = QImage(resultobj.img_thread_color,  w, h, QImage.Format_RGBA8888)
 
@@ -212,10 +230,6 @@ class StitchBuilderGraphical(QWidget):
     self.img_thread_color    = img_thread_color
 
     # Change UI elements now that we have results
-    self.ui.OriginalImageLabel.setHidden(False)
-    self.ui.OriginalImageLabel.setImage(img_scaled)
-    self.ui.AfterFilterImageLabel.setHidden(False)
-    self.ui.AfterFilterImageLabel.setImage(after_filter)
     self.ui.ReducedColorspaceImageLabel.setHidden(False)
     self.ui.ReducedColorspaceImageLabel.setImage(img_reduced_colorspace)
     self.ui.ThreadColorImageLabel.setHidden(False)
