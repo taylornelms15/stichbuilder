@@ -8,13 +8,14 @@ import os.path
 import StitchConstants
 
 class ImageConverterResultImages(object):
-  def __init__(self, img, img_scaled, img_post_filter, img_reduced_colorspace, img_thread_color, img_thread_array):
+  def __init__(self, img, img_scaled, img_post_filter, img_reduced_colorspace, img_thread_color, img_thread_array, used_entries):
     self.img                    = img
     self.img_scaled             = img_scaled
     self.img_post_filter        = img_post_filter
     self.img_reduced_colorspace = img_reduced_colorspace
     self.img_thread_color       = img_thread_color
     self.img_thread_array       = img_thread_array
+    self.threadcount_dict       = used_entries
 
 class ImageConverter(object):
   """
@@ -144,7 +145,10 @@ class ImageConverter(object):
         matching_entry = entrylist[idx]
         img_threads[i][j] = matching_entry
         img_threadcolor[i][j] = matching_entry.getColor(colorspace)
-    return (img_threadcolor, img_threads) 
+    for entry in used_entries.keys():
+      num_pixels = np.count_nonzero(entry == img_threadcolor) # May be useful for debugging?
+      used_entries[entry] = num_pixels
+    return (img_threadcolor, img_threads, used_entries)
         
   @staticmethod
   def getColorConversions(colorspace_name):
@@ -221,7 +225,7 @@ class ImageConverter(object):
         used_entries[entry] = num_pixels
 
     if self.dither:
-      self.img_thread_color, self.img_thread_array = ImageConverter.ditherImage(img_conv, self.img_reduced_colorspace, used_entries, colorspace)
+      self.img_thread_color, self.img_thread_array, used_entries = ImageConverter.ditherImage(img_conv, self.img_reduced_colorspace, used_entries, colorspace)
     else:
       self.img_thread_array = np.zeros([h, w], dtype=object)
       self.img_thread_color = np.zeros([h, w, 3], dtype=np.float32)
@@ -246,7 +250,7 @@ class ImageConverter(object):
     self.img_thread_color       = self.convertImageBGR2RGBA(self.img_thread_color)
 
     # Store all our results into the self.results object
-    self.results = ImageConverterResultImages(self.img_unscaled, img_scaled_rgba, self.img_post_filter, self.img_reduced_colorspace, self.img_thread_color, self.img_thread_array)
+    self.results = ImageConverterResultImages(self.img_unscaled, img_scaled_rgba, self.img_post_filter, self.img_reduced_colorspace, self.img_thread_color, self.img_thread_array, used_entries)
     return self.results
 
   @staticmethod

@@ -45,7 +45,8 @@ class CrossStitchKeyEntry(QtWidgets.QWidget):
   def mid_margin(self):
     return int(self.squaresize / 6.0)
   
-  def setEntry(self, threadentry, symbol):
+  def setEntry(self, threadentry, symbol, stitch_count):
+    # TODO: display the stitch count somewhere
     # Determine text contents
     self.text = "%s (%s)" % (threadentry.DisplayNumStr, threadentry.DisplayName)
     self.statictext = QtGui.QStaticText(self.text)
@@ -103,8 +104,15 @@ class CrossStitchKeyNoScroll(QtWidgets.QWidget):
     self.glayout = QtWidgets.QGridLayout()
     self.setLayout(self.glayout)
 
-    self.font = QtGui.QFont("sans-serif", pointSize=int(round(StitchConstants.FONT_BASE_SIZE_PT * sizefactor)))
-    self.squaresize = int(round(StitchConstants.SQUARE_SIDE_LEN_PX * sizefactor))
+    self.setSizeFactor(sizefactor)
+
+  def setSizeFactor(self, sizefactor):
+    self.sizefactor = sizefactor
+
+    fontsize_pt = int(round(StitchConstants.FONT_BASE_SIZE_PT * self.sizefactor))
+
+    self.font = QtGui.QFont("sans-serif", pointSize=fontsize_pt)
+    self.squaresize = int(round(StitchConstants.SQUARE_SIDE_LEN_PX * self.sizefactor))
 
   def clearOldContents(self):
     for i in reversed(range(self.glayout.rowCount())):
@@ -115,7 +123,7 @@ class CrossStitchKeyNoScroll(QtWidgets.QWidget):
           self.glayout.removeWidget(item.widget())
     self.glayout.update()
 
-  def consumeImage(self, img_thread_array, bw, columns = 4):
+  def consumeImage(self, img_thread_array, threadcount_dict, bw, columns = 4):
     self.gcols = columns
     # Clear our grid layout of anything that was in there previously
     self.clearOldContents()
@@ -135,7 +143,7 @@ class CrossStitchKeyNoScroll(QtWidgets.QWidget):
     # Create and add widgets for each thread
     for i, t in enumerate(threads_sorted):
       entry_widget = CrossStitchKeyEntry(bw=bw, font=self.font, squaresize=self.squaresize)
-      entry_widget.setEntry(t, self.keyCreator[t])
+      entry_widget.setEntry(t, self.keyCreator[t], threadcount_dict[t])
       col = i % self.gcols
       row = i / self.gcols
       self.glayout.addWidget(entry_widget, row, col)

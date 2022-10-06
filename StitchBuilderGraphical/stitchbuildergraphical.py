@@ -61,17 +61,18 @@ class ImageConverterWorker(QtCore.QObject):
 
 class PdfCreatorWorker(QtCore.QObject):
   finished = QtCore.Signal(str)
-  def __init__(self, filename, img_threadcolor, threadarray, bw, parent=None):
+  def __init__(self, filename, img_threadcolor, threadarray, threadcount_dict, bw, parent=None):
     super().__init__(parent)
-    self.filename = filename
-    self.pdfCreator = PdfCreator(filename)
-    self.img_threadcolor = img_threadcolor
-    self.threadarray = threadarray
-    self.bw = bw
+    self.filename         = filename
+    self.pdfCreator       = PdfCreator(filename)
+    self.img_threadcolor  = img_threadcolor
+    self.threadarray      = threadarray
+    self.threadcount_dict = threadcount_dict
+    self.bw               = bw
 
   def run(self):
     print("Starting to write pdf")
-    self.pdfCreator.consumeImage(self.threadarray, self.bw, self.img_threadcolor)
+    self.pdfCreator.consumeImage(self.threadarray, self.threadcount_dict, self.bw, self.img_threadcolor)
     print("Finished writing PDF")
     self.finished.emit(self.filename)
 
@@ -84,14 +85,14 @@ class StitchBuilderGraphical(QWidget):
     self.setWindowTitle(StitchConstants.PROGRAM_NAME)
 
     # Internal Model
-    self.imageConverter = ImageConverter()
-    self.args           = StitchBuilderArgs()
+    self.imageConverter   = ImageConverter()
+    self.args             = StitchBuilderArgs()
+    self.threadcount_dict = None
 
     # Images
     img = self.loadTestImage()
     h, w, _ = img.shape
     self.ui.topPic.setImage(QImage(img, w, h, QImage.Format_BGR888))
-    #TODO: put a better top pic here?
 
     # File Path
     fileDisplay = self.ui.filePathDisplay
@@ -119,6 +120,10 @@ class StitchBuilderGraphical(QWidget):
     cButton = self.ui.convertButton
     cButton.setEnabled(False)#initially no filepath, so set to disabled
     cButton.clicked.connect(self.onConvertButton)
+
+    # Right Side
+    self.ui.RightSideScrollableContents.setSizeFactor(0.75)
+    self.ui.crossStitchKey.setSizeFactor(0.75)
 
     # Conversion Results
     self.threadarray_results = None
@@ -191,7 +196,7 @@ class StitchBuilderGraphical(QWidget):
     # Create a QThread object
     self.pdf_thread = QtCore.QThread()
     # Step 3: Create a worker object
-    self.pdf_worker = PdfCreatorWorker(fileName, self.img_thread_color, threadarray, self.args.bw)
+    self.pdf_worker = PdfCreatorWorker(fileName, self.img_thread_color, threadarray, self.threadcount_dict, self.args.bw)
     # Step 4: Move worker to the thread
     self.pdf_worker.moveToThread(self.pdf_thread)
     # Step 5: Connect signals and slots
@@ -226,8 +231,9 @@ class StitchBuilderGraphical(QWidget):
     img_thread_color        = QImage(resultobj.img_thread_color,  w, h, QImage.Format_RGBA8888)
 
     # Save results
-    self.threadarray_results = resultobj.img_thread_array
-    self.img_thread_color    = img_thread_color
+    self.threadarray_results  = resultobj.img_thread_array
+    self.img_thread_color     = img_thread_color
+    self.threadcount_dict     = resultobj.threadcount_dict
 
     # Change UI elements now that we have results
     self.ui.ReducedColorspaceImageLabel.setHidden(False)
@@ -236,8 +242,8 @@ class StitchBuilderGraphical(QWidget):
     self.ui.ThreadColorImageLabel.setImage(img_thread_color)
     self.ui.savePdfButton.setHidden(False)
 
-    self.ui.crossStitchKey.consumeImage(resultobj.img_thread_array, bw=self.args.bw)
-    self.ui.RightSideScrollableContents.consumeImage(resultobj.img_thread_array, bw=self.args.bw)
+    self.ui.crossStitchKey.consumeImage(resultobj.img_thread_array, self.threadcount_dict, bw=self.args.bw)
+    self.ui.RightSideScrollableContents.consumeImage(resultobj.img_thread_array, self.threadcount_dict, bw=self.args.bw)
     self.repaint()
 
   def onSavePdfFinished(self, filename):

@@ -74,7 +74,7 @@ class PdfCreator:
     painter.setFont(pageNumFont)
     painter.drawStaticText(drawpoint, st)
 
-  def consumeImage(self, threadarray, bw, img_threadcolor):
+  def consumeImage(self, threadarray, threadcount_dict, bw, img_threadcolor):
     # Set up PdfWriter with paper size, orientation, margins, etc
     writer = QtGui.QPdfWriter(self.filename)
     writer.setResolution(StitchConstants.RESOLUTION_DPI)
@@ -96,7 +96,7 @@ class PdfCreator:
 
     # Create header key widget
     keyWidget = PdfKeyHeader()
-    keyWidget.consumeImage(threadarray, bw, print_area_px.width())
+    keyWidget.consumeImage(threadarray, threadcount_dict, bw, print_area_px.width())
 
     # Determine rendering position based on sizehint
     kwidth  = keyWidget.sizeHint().width()

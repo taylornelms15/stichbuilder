@@ -20,8 +20,12 @@ class CrossStitchPrintView(QtWidgets.QWidget):
     self.text_rects       = None
     self.staticTexts      = None
     self.staticLines      = None
-    self.sizefactor       = sizefactor
 
+    # Set the other  attributes that depend on the sizefactor
+    self.setSizeFactor(sizefactor)
+
+  def setSizeFactor(self, sizefactor):
+    self.sizefactor = sizefactor
     # Set font sizes, square sizes
     self.squaresize = int(round(StitchConstants.SQUARE_SIDE_LEN_PX * self.sizefactor))
     self.marginsize = int(round(StitchConstants.GRID_LABEL_MARGIN_BASE_PX * self.sizefactor))
@@ -106,7 +110,7 @@ class CrossStitchPrintView(QtWidgets.QWidget):
 
     return (retval, retval_lines)
 
-  def consumeImage(self, img_thread_array, bw, view_rect = None):
+  def consumeImage(self, img_thread_array, threadcount_dict, bw, view_rect = None):
     """
     Parameters:
       img_thread_array (np.ndarray): 2-dimensional array of ThreadEntry objects describing the color to stitch

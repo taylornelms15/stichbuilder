@@ -34,7 +34,7 @@ class PdfKeyHeader(QFrame):
     self.keyWidget.deleteLater()
     self.keyWidget = None
 
-  def consumeImage(self, threadarray, bw, maxWidth):
+  def consumeImage(self, threadarray, threadcount_dict, bw, maxWidth):
     if self.keyWidget is not None:
       self.clearOldKeyWidget()
     unique_elements = np.unique(threadarray)
@@ -44,7 +44,7 @@ class PdfKeyHeader(QFrame):
     while not found_col_count:
       # need to remake the keyWidget, otherwise deletions don't happen correctly before rendering and everything goes to hell
       keyWidget = CrossStitchKeyNoScroll(sizefactor=StitchConstants.PRINT_SIZEFACTOR)
-      keyWidget.consumeImage(threadarray, bw, columns=columns)
+      keyWidget.consumeImage(threadarray, threadcount_dict, bw, columns=columns)
       print("Trying column count %s, keyWidget width %s of print_size_pixels width %s" % (columns, keyWidget.sizeHint().width(), maxWidth))
       if keyWidget.sizeHint().width() < maxWidth:
         found_col_count = True
