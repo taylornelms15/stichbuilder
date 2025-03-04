@@ -1,5 +1,4 @@
 argparse
-pandas
 numpy
 opencv-python
 duckdb
