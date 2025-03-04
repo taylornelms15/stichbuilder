@@ -54,6 +54,8 @@ class ThreadTree:
                         "luv_l", "luv_u", "luv_v",
                         "lab_l", "lab_a", "lab_b"]
             """
+            if row[2] == "ecru":
+              continue
             entry = ThreadEntry(row[0], row[1], row[2],
                                 row[6], row[7], row[8],
                                 row[9], row[10], row[11],
