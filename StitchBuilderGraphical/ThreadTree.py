@@ -10,6 +10,8 @@ import numpy as np
 
 from ThreadEntry import ThreadEntry
 
+THREAD_COLOR_IGNORE_LIST = ["ecru", "b5200"]
+
 class ThreadTree:
     """
     The collection of our different thread options
@@ -54,7 +56,7 @@ class ThreadTree:
                         "luv_l", "luv_u", "luv_v",
                         "lab_l", "lab_a", "lab_b"]
             """
-            if row[2] == "ecru":
+            if row[2] in THREAD_COLOR_IGNORE_LIST:
               continue
             entry = ThreadEntry(row[0], row[1], row[2],
                                 row[6], row[7], row[8],
