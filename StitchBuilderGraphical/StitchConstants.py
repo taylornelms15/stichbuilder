@@ -37,4 +37,6 @@ RESOLUTION_DPI = 600
 DISPLAY_SIZEFACTOR = RESOLUTION_DPI / 96.0 # 96 conceptual pixels per inch for accurate font rendering
 # Aesthetic modification to the above factor
 PRINT_SIZEFACTOR = DISPLAY_SIZEFACTOR * (2.0 / 3.0)
+# Page number font size
+PAGENUM_FONT_SIZE_PT = 12
 

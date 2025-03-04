@@ -7,11 +7,6 @@ from PdfKeyHeader import PdfKeyHeader
 from PrintDivider import PrintDivider
 import StitchConstants
 
-MARGINSIZE_IN       = 0.5
-RESOLUTION_DPI      = 600
-DISPLAY_SIZEFACTOR  = RESOLUTION_DPI / 96 #96 conceptual pixels per inch for accurate font rendering
-
-
 class PdfCreator:
   RENDER_FLAGS = QWidget.RenderFlags(QWidget.RenderFlag.DrawChildren)
 
@@ -57,7 +52,7 @@ class PdfCreator:
 
   def printPageNumber(self, painter, page_num, total_pages, print_area_px):
     # Create StaticText
-    fontsize = int(round(StitchConstants.FONT_BASE_SIZE_PT * StitchConstants.PRINT_SIZEFACTOR))
+    fontsize = StitchConstants.PAGENUM_FONT_SIZE_PT
     pageNumFont = QtGui.QFont("sans-serif", pointSize = fontsize)
     pagenum_text = "Page %s of %s" % (page_num, total_pages)
     st =  QtGui.QStaticText(pagenum_text)
@@ -65,8 +60,8 @@ class PdfCreator:
     st_w = st.size().width()
 
     # Figure out where text is going
-    tl_x = print_area_px.width() - st_w
-    tl_h = print_area_px.height() #drawing just outside the margin for the page number
+    tl_x = print_area_px.width() - 3 * st_w
+    tl_h = print_area_px.height() - st.size().height()
     drawpoint = QtCore.QPointF(tl_x, tl_h)
 
     # Draw StaticText
@@ -77,19 +72,18 @@ class PdfCreator:
   def consumeImage(self, threadarray, threadcount_dict, bw, img_threadcolor):
     # Set up PdfWriter with paper size, orientation, margins, etc
     writer = QtGui.QPdfWriter(self.filename)
-    writer.setResolution(StitchConstants.RESOLUTION_DPI)
     writer.setPageSize(QtGui.QPageSize.Letter)
     writer.setPageOrientation(QtGui.QPageLayout.Orientation.Landscape)
     writer.setPageMargins(QtCore.QMarginsF(StitchConstants.MARGINSIZE_IN,
                                            StitchConstants.MARGINSIZE_IN,
                                            StitchConstants.MARGINSIZE_IN,
                                            StitchConstants.MARGINSIZE_IN),
-                          QtGui.QPageLayout.Inch)
+                          units=QtGui.QPageLayout.Inch)
+    writer.setResolution(StitchConstants.RESOLUTION_DPI)
 
     # Compute rendering space available given page layout
     pagelayout = writer.pageLayout()
     print_area_px = pagelayout.paintRectPixels(writer.logicalDpiX())
-    print("Pixels of paint area: %s" % (print_area_px,))
 
     # Create painter with which to render onto pages
     painter = QtGui.QPainter(writer)
@@ -120,7 +114,7 @@ class PdfCreator:
 
       # Render page content
       csWidget = CrossStitchPrintView(parent = None, sizefactor = StitchConstants.PRINT_SIZEFACTOR)
-      csWidget.consumeImage(threadarray, bw, rect)
+      csWidget.consumeImage(threadarray, threadcount_dict, bw, rect)
 
       cwidth  = csWidget.sizeHint().width()
       cheight = csWidget.sizeHint().height()
