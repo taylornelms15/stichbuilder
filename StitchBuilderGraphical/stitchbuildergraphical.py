@@ -274,7 +274,9 @@ class StitchBuilderGraphical(QWidget):
       return
     self.ui.filePathDisplay.setText(filename)
     self.args.imgpath = filename
-    loaded_image      = QImage(filename, format=QImage.Format_BGR888)
+    loaded_image      = QImage(filename)
+    if not loaded_image.isNull():
+      loaded_image = loaded_image.convertToFormat(QImage.Format_BGR888)
     if (loaded_image.hasAlphaChannel()):
       print("Found an alpha channel, drawing it onto white background")
       tmp = QImage(loaded_image.width(), loaded_image.height(), QImage.Format_BGR888)
