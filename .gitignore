@@ -37,9 +37,12 @@
 # Data Files
 *.parquet
 
-# Build dir
+# Build dir(s)
 stitchbuildergraphical.build
 stitchbuildergraphical.dist
+build
+dist
+stitchbuildergraphical.onefile-build
 
 # Python Stuff (whoops, this was a python project and not C++)
 __pycache__
